@@ -40,6 +40,7 @@ TARGET_LINK_LIBRARIES(hype
 	"-lm"
 	"-lpthread"
 	"-lresolv"
+	"-lrt"
 	${LUA_LIBRARIES}
 	${PCAP_LIBRARY}
 )
