@@ -463,6 +463,7 @@ static int hype_cookie32(lua_State *L) {
 	return 1;
 }
 
+/* TODO: maybe make this a bit better, like string.format() or something */
 static int hype_print(lua_State *L) {
 	if ((lua_gettop(L) != 1) || !lua_isstring(L, -1))
 		luaL_error(L, "Invalid argument");
