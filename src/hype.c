@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
 	/* TODO: add --exclude option */
 
 	args->targets = range_parse_targets(args, argv[1]);
-	args->ports   = NULL;
+	args->ports   = range_parse_ports(args, "0");
 	args->rate    = 100;
 	args->seed    = get_entropy();
 	args->wait    = 5;
@@ -112,6 +112,8 @@ int main(int argc, char *argv[]) {
 
 		case 'p':
 			validate_optlist("--ports", optarg);
+			talloc_free(args->ports);
+
 			args->ports = range_parse_ports(args, optarg);
 			break;
 
