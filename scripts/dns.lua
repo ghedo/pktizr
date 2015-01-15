@@ -39,7 +39,6 @@ function analyze(pkts)
 
 	-- TODO: check if recursive queries are allowed
 
-	local fmt = "Received DNS reply from %s.%u"
-	hype.print(string.format(fmt, ip4.src, udp.sport))
+	hype.print("Received DNS reply from %s.%u", ip4.src, udp.sport)
 	return true
 end

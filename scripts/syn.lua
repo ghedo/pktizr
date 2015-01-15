@@ -41,7 +41,6 @@ function analyze(pkts)
 		return -- don't print closed ports
 	end
 
-	local fmt = "Port %u at %s is %s"
-	hype.print(string.format(fmt, tcp.sport, ip4.src, status))
+	hype.print("Port %u at %s is %s", tcp.sport, ip4.src, status)
 	return true
 end

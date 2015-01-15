@@ -7,7 +7,7 @@
 -- when the target SYN+ACK is received, ruining everything. You'll need to
 -- filter outgoing RST packets with iptables like so:
 --
---   iptables -A OUTPUT -p tcp --tcp-flags RST RST -j DROP"
+--   iptables -A OUTPUT -p tcp --tcp-flags RST RST -j DROP
 --
 -- Also note that if the remote target doesn't actually send a banner, the
 -- connection is left open. The target will, at some point, realize that it's a
@@ -29,6 +29,7 @@ end
 function analyze(pkts)
 	local ip4 = pkts[1]
 	local tcp = pkts[2]
+	local raw = pkts[3]
 
 	if #pkts < 2 or tcp._type ~= 'tcp' then
 		return
@@ -66,8 +67,7 @@ function analyze(pkts)
 
 	if tcp.psh then
 		local fmt = "Banner from %s.%u: %s"
-		hype.print(string.format(fmt, src, sport,
-		                         string.sub(pkts[3].payload, 1, -2)))
+		hype.print(fmt, src, sport, string.sub(raw.payload, 1, -2))
 
 		tcp.syn   = false
 		tcp.psh   = false

@@ -6,7 +6,7 @@
 -- when the target SYN+ACK is received, ruining everything. You'll need to
 -- filter outgoing RST packets with iptables like so:
 --
---   iptables -A OUTPUT -p tcp --tcp-flags RST RST -j DROP"
+--   iptables -A OUTPUT -p tcp --tcp-flags RST RST -j DROP
 --
 -- Also note that if the remote target doesn't actually answers to HTTP, the
 -- connection is left open. The target will, at some point, realize that it's a
@@ -79,7 +79,7 @@ function analyze(pkts)
 			status = line:match("HTTP/1.1 %d+.*")
 			if status ~= nil  then
 				local fmt = "HTTP status from %s.%u: %s"
-				hype.print(string.format(fmt, src, sport, status))
+				hype.print(fmt, src, sport, status)
 			end
 		end
 

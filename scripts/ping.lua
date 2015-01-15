@@ -34,6 +34,6 @@ function analyze(pkts)
 		return
 	end
 
-	hype.print(string.format("Host %s is up", ip4.src))
+	hype.print("Host %s is up", ip4.src)
 	return true
 end

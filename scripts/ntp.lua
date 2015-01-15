@@ -45,6 +45,6 @@ function analyze(pkts)
 	end
 
 	local fmt = "Received NTP reply from %s.%u: impl=%u, code=%u"
-	hype.print(string.format(fmt, ip4.src, udp.sport, impl, code))
+	hype.print(fmt, ip4.src, udp.sport, impl, code)
 	return true
 end
