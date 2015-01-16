@@ -54,7 +54,7 @@ int resolve_ifname_to_mac(char *ifname, uint8_t *mac) {
 	if (fd < 0)
 		sysf_printf("socket(AF_INET");
 
-	strncpy(ifr.ifr_name, ifname, IFNAMSIZ);
+	strncpy(ifr.ifr_name, ifname, IFNAMSIZ - 1);
 
 	rc = ioctl(fd, SIOCGIFHWADDR, &ifr);
 	if (rc < 0)
