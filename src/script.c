@@ -547,6 +547,7 @@ static int hype_send(lua_State *L) {
 }
 
 #define luaH_getfield(STATE, FIELD, TYPE, OUT)				\
+do {									\
 	luaL_checkstack(STATE, 1, "OOM");				\
 	lua_getfield(STATE, -1, FIELD);					\
 									\
@@ -557,12 +558,15 @@ static int hype_send(lua_State *L) {
 		OUT = lua_to##TYPE(STATE, -1);				\
 	}								\
 									\
-	lua_pop(STATE, 1);
+	lua_pop(STATE, 1);						\
+} while (0);
 
 #define luaH_setfield(STATE, FIELD, TYPE, IN)				\
+do {									\
 	luaL_checkstack(STATE, 1, "OOM");				\
 	lua_push##TYPE(STATE, IN);					\
-	lua_setfield(STATE, -2, FIELD);
+	lua_setfield(STATE, -2, FIELD);					\
+} while (0);
 
 static int get_type(lua_State *L) {
 	const char *type = NULL;
