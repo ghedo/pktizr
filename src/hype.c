@@ -99,6 +99,7 @@ int main(int argc, char *argv[]) {
 	args->seed    = get_entropy();
 	args->wait    = 5;
 	args->count   = 1;
+	args->script  = NULL;
 	args->quiet   = false;
 	args->done    = false;
 
@@ -151,6 +152,9 @@ int main(int argc, char *argv[]) {
 			return 0;
 		}
 	}
+
+	if (!args->script)
+		fail_printf("No script provided");
 
 	/* TODO: make local_addr/mac, gateway_addr/mac configurable */
 
