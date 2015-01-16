@@ -75,6 +75,7 @@ struct pkt *pkt_new(void *ta, enum pkt_type type) {
 
 	case TYPE_RAW:
 		p->length = 0;
+		break;
 
 	case TYPE_NONE:
 		p->length = 0;
