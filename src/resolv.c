@@ -56,12 +56,11 @@ int resolv_name_to_addr(const char *name, uint32_t *addr) {
 	if (rc != 0)
 		fail_printf("Error resolving '%s': %s", name, gai_strerror(rc));
 
-	for (struct addrinfo *r = res; r != NULL; r = r->ai_next) {
-		*addr = ((struct sockaddr_in *) r->ai_addr)->sin_addr.s_addr;
-		return 0;
-	}
+	*addr = ((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
 
-	return -1;
+	freeaddrinfo(res);
+
+	return 0;
 }
 
 int resolv_addr_to_mac(struct netif *netif,
