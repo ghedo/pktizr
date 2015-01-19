@@ -8,6 +8,7 @@ local raw = hype.Raw({})
 
 -- A? example.com. (without initial transaction ID)
 local dns_query = '\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x07\x65\x78\x61\x6d\x70\x6c\x65\x03\x63\x6f\x6d\x00\x00\x01\x00\x01'
+local dns_length = string.len(dns_query)
 
 function assemble(addr, port)
 	ip4.dst = addr
@@ -15,7 +16,7 @@ function assemble(addr, port)
 	udp.dport = port
 
 	local seq = hype.cookie16(hype.local_addr, addr, 64434, port)
-	raw.payload = hype.pack('>HA', seq, dns_query)
+	raw.payload = hype.pack('>Hc' .. dns_length, seq, dns_query)
 
 	return ip4, udp, raw
 end
@@ -31,7 +32,7 @@ function analyze(pkts)
 
 	local seq = hype.cookie16(ip4.dst, ip4.src, udp.dport, udp.sport)
 
-	local n, id, rsp = hype.unpack(dns.payload, '>HA')
+	local id = hype.unpack('>H', dns.payload)
 
 	if seq ~= id then
 		return

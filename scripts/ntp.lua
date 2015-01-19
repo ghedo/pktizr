@@ -27,7 +27,7 @@ function analyze(pkts)
 		return
 	end
 
-	local n, vers, impl, code, rsp = hype.unpack(ntp.payload, '>bbbA')
+	local vers, impl, code = hype.unpack('>BBB', ntp.payload)
 
 	-- response bit set
 	if bit.rshift(vers, 7) ~= 1 then
