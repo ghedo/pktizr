@@ -65,4 +65,26 @@ int resolve_ifname_to_mac(char *ifname, uint8_t *mac) {
 	return 0;
 }
 
+int resolve_ifname_to_ip(char *ifname, uint32_t *ip) {
+	int rc;
+	struct ifreq ifr;
+	struct sockaddr_in *sa;
+
+	_close_ int fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (fd < 0)
+		sysf_printf("socket(AF_INET");
+
+	strncpy(ifr.ifr_name, ifname, IFNAMSIZ - 1);
+
+	rc = ioctl(fd, SIOCGIFADDR, &ifr);
+	if (rc < 0)
+		sysf_printf("ioctl(SIOCGIFADDR)");
+
+	sa = (struct sockaddr_in *) &ifr.ifr_addr;
+
+	*ip = ntohl(sa->sin_addr.s_addr);
+
+	return 0;
+}
+
 #endif /* __linux__ */

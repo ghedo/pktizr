@@ -163,12 +163,15 @@ int main(int argc, char *argv[]) {
 	if (rc < 0)
 		fail_printf("Error getting routes");
 
-	args->local_addr   = ntohl(route.pref_addr);
 	args->gateway_addr = ntohl(route.gate_addr);
 
 	rc = resolve_ifname_to_mac(route.if_name, args->local_mac);
 	if (rc < 0)
 		fail_printf("Error resolving local MAC");
+
+	rc = resolve_ifname_to_ip(route.if_name, &args->local_addr);
+	if (rc < 0)
+		fail_printf("Error resolving local IP");
 
 	args->netif = netif_open_pcap(route.if_name);
 	if (!args->netif)
