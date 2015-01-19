@@ -37,6 +37,7 @@
 #include <talloc.h>
 
 #include "ranges.h"
+#include "resolv.h"
 #include "printf.h"
 #include "util.h"
 
@@ -56,8 +57,13 @@ struct range *range_parse_targets(void *ta, char *spec) {
 		struct in_addr a;
 
 		int bits = inet_net_pton(AF_INET, ranges[i], &a, sizeof(a));
-		if (bits < 0)
-			sysf_printf("Invalid address '%s'", ranges[i]);
+		if (bits < 0) {
+			int rc = resolv_name_to_addr(ranges[i], &a.s_addr);
+			if (rc < 0)
+				sysf_printf("Invalid address '%s'", ranges[i]);
+
+			bits = 32;
+		}
 
 		uint32_t mask = 0xffffffff00000000ull >> bits;
 

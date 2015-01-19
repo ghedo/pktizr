@@ -30,6 +30,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <netdb.h>
 
 #include <arpa/inet.h>
 
@@ -43,6 +44,25 @@
 
 #define ETH_PKTLEN 14
 #define ARP_PKTLEN (8 + 2 * 6 + 2 * 4)
+
+int resolv_name_to_addr(const char *name, uint32_t *addr) {
+	int rc;
+	struct addrinfo hints, *res;
+
+	memset(&hints, 0, sizeof(struct addrinfo));
+	hints.ai_family = AF_INET;
+
+	rc = getaddrinfo(name, NULL, &hints, &res);
+	if (rc != 0)
+		fail_printf("Error resolving '%s': %s", name, gai_strerror(rc));
+
+	for (struct addrinfo *r = res; r != NULL; r = r->ai_next) {
+		*addr = ((struct sockaddr_in *) r->ai_addr)->sin_addr.s_addr;
+		return 0;
+	}
+
+	return -1;
+}
 
 int resolv_addr_to_mac(struct netif *netif,
                        uint8_t *shost, uint32_t saddr,
