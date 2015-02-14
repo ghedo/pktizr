@@ -36,9 +36,9 @@ struct hype_args {
 
 	char *script;
 
-	uint64_t pkt_count;
-	uint64_t pkt_sent;
-	uint64_t pkt_recv;
+	uint64_t target_count;
+	uint64_t target_sent;
+	uint64_t target_recv;
 
 	uint64_t rate;
 	uint64_t seed;

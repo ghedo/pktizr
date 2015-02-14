@@ -67,9 +67,6 @@ static struct option long_opts[] = {
 	{ 0, 0, 0, 0 }
 };
 
-static void start_send(struct hype_args *args);
-static void start_recv(struct hype_args *args);
-
 static void *send_cb(void *p);
 static void *recv_cb(void *p);
 
@@ -78,6 +75,15 @@ static void status_line(struct hype_args *args);
 static uint64_t get_entropy(void);
 
 static inline void help(void);
+
+#define START_THREAD(MUTEX, COND, THREAD, FUNC, ARGS)	\
+	pthread_mutex_init(&ARGS->MUTEX, NULL);		\
+	pthread_cond_init(&ARGS->COND, NULL);		\
+	pthread_create(&ARGS->THREAD, NULL, FUNC, ARGS);\
+							\
+	pthread_mutex_lock(&ARGS->MUTEX);		\
+	pthread_cond_wait(&ARGS->COND, &args->MUTEX);	\
+	pthread_mutex_unlock(&ARGS->MUTEX);		\
 
 int main(int argc, char *argv[]) {
 	int rc, i;
@@ -183,8 +189,8 @@ int main(int argc, char *argv[]) {
 	if (rc < 0)
 		fail_printf("Error resolving local MAC");
 
-	start_recv(args);
-	start_send(args);
+	START_THREAD(recv_mutex, recv_started, recv_thread, recv_cb, args);
+	START_THREAD(send_mutex, send_started, send_thread, send_cb, args);
 
 	status_line(args);
 
@@ -199,26 +205,6 @@ int main(int argc, char *argv[]) {
 	args->netif->close(args->netif);
 
 	return 0;
-}
-
-static void start_send(struct hype_args *args) {
-	pthread_mutex_init(&args->send_mutex, NULL);
-	pthread_cond_init(&args->send_started, NULL);
-	pthread_create(&args->send_thread, NULL, send_cb, args);
-
-	pthread_mutex_lock(&args->send_mutex);
-	pthread_cond_wait(&args->send_started, &args->send_mutex);
-	pthread_mutex_unlock(&args->send_mutex);
-}
-
-static void start_recv(struct hype_args *args) {
-	pthread_mutex_init(&args->recv_mutex, NULL);
-	pthread_cond_init(&args->recv_started, NULL);
-	pthread_create(&args->recv_thread, NULL, recv_cb, args);
-
-	pthread_mutex_lock(&args->recv_mutex);
-	pthread_cond_wait(&args->recv_started, &args->recv_mutex);
-	pthread_mutex_unlock(&args->recv_mutex);
 }
 
 static void *send_cb(void *p) {
@@ -237,8 +223,8 @@ static void *send_cb(void *p) {
 	uint8_t *buf = talloc_size(args, 65535);
 	size_t   len = 65535;
 
-	args->pkt_sent  = 0;
-	args->pkt_count = tot_cnt;
+	args->target_sent  = 0;
+	args->target_count = tot_cnt;
 
 	printf("Scanning %zu ports on %zu hosts...\n", prt_cnt, tgt_cnt);
 
@@ -261,7 +247,7 @@ static void *send_cb(void *p) {
 
 		args->netif->inject(args->netif, buf, pkt_len);
 
-		args->pkt_sent++;
+		args->target_sent++;
 	}
 
 	script_close(L);
@@ -275,7 +261,7 @@ static void *recv_cb(void *p) {
 	void *L   = script_load(args);
 	void *mem = talloc_new(args);
 
-	args->pkt_recv = 0;
+	args->target_recv = 0;
 
 	pthread_cond_signal(&args->recv_started);
 
@@ -290,7 +276,7 @@ static void *recv_cb(void *p) {
 		if (rc < 0)
 			continue;
 
-		args->pkt_recv++;
+		args->target_recv++;
 	}
 
 	script_close(L);
@@ -300,13 +286,13 @@ static void *recv_cb(void *p) {
 
 static void status_line(struct hype_args *args) {
 	/* TODO: handle ctrl+c */
-	uint64_t tot      = args->pkt_count;
+	uint64_t tot      = args->target_count;
 	uint64_t now_old  = time_now();
-	uint64_t sent_old = args->pkt_sent;
+	uint64_t sent_old = args->target_sent;
 
 	while (1) {
 		uint64_t now   = time_now();
-		uint64_t sent  = args->pkt_sent;
+		uint64_t sent  = args->target_sent;
 
 		double rate    = (sent - sent_old) / ((now - now_old) / 1e6);
 		double percent = (double) sent * 100 / tot;
@@ -316,7 +302,7 @@ static void status_line(struct hype_args *args) {
 			fprintf(stderr, "Progress: %3.2f%% ", percent);
 			fprintf(stderr, "Rate: %3.2fkpps ", rate / 1000);
 			fprintf(stderr, "Sent: %zu ", sent);
-			fprintf(stderr, "Replies: %zu ", args->pkt_recv);
+			fprintf(stderr, "Replies: %zu ", args->target_recv);
 			fprintf(stderr, "\r");
 		}
 
