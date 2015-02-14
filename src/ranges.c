@@ -37,6 +37,7 @@
 #include <talloc.h>
 
 #include "ranges.h"
+#include "netif.h"
 #include "resolv.h"
 #include "printf.h"
 #include "util.h"
