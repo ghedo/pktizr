@@ -2,7 +2,7 @@ language: c
 
 install:
  - sudo apt-get update
- - sudo apt-get install cmake pkg-config liblua5.2-dev libpcap0.8-dev
+ - sudo apt-get install cmake pkg-config liblua5.2-dev libpcap0.8-dev liburcu-dev
 
 before_script:
  - cmake .
