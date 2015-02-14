@@ -65,8 +65,9 @@ See the [man page](http://ghedo.github.io/hype/) for more information.
 
 ## DEPENDENCIES
 
- * `libpcap`
  * `liblua5.1/5.2/jit`
+ * `libpcap`
+ * `liburcu`
 
 ## BUILDING
 

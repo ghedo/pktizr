@@ -41,12 +41,15 @@
 
 #include <talloc.h>
 
+#include <urcu.h>
+
 #include "bucket.h"
 #include "hype.h"
 #include "netif.h"
 #include "ranges.h"
 #include "resolv.h"
 #include "routes.h"
+#include "pkt.h"
 #include "script.h"
 #include "printf.h"
 #include "util.h"
@@ -69,6 +72,7 @@ static struct option long_opts[] = {
 
 static void *send_cb(void *p);
 static void *recv_cb(void *p);
+static void *loop_cb(void *p);
 
 static void status_line(struct hype_args *args);
 
@@ -189,18 +193,24 @@ int main(int argc, char *argv[]) {
 	if (rc < 0)
 		fail_printf("Error resolving local MAC");
 
+	rcu_init();
+
+	cds_wfcq_init(&args->queue_head, &args->queue_tail);
+
 	START_THREAD(recv_mutex, recv_started, recv_thread, recv_cb, args);
 	START_THREAD(send_mutex, send_started, send_thread, send_cb, args);
+	START_THREAD(loop_mutex, loop_started, loop_thread, loop_cb, args);
 
 	status_line(args);
 
-	pthread_join(args->send_thread, NULL);
+	pthread_join(args->loop_thread, NULL);
 
 	time_sleep(args->wait * 1e6);
 
 	args->done = true;
 
 	pthread_join(args->recv_thread, NULL);
+	pthread_join(args->send_thread, NULL);
 
 	args->netif->close(args->netif);
 
@@ -210,47 +220,42 @@ int main(int argc, char *argv[]) {
 static void *send_cb(void *p) {
 	struct hype_args *args = p;
 
-	void *L   = script_load(args);
-	void *mem = talloc_new(args);
+	uint8_t *buf = talloc_size(args, 65535);
+	size_t   len = 65535;
 
 	struct bucket bucket;
 	bucket_init(&bucket, args->rate);
 
-	size_t tgt_cnt = range_list_count(args->targets);
-	size_t prt_cnt = range_list_count(args->ports);
-	size_t tot_cnt = tgt_cnt * prt_cnt * args->count;
+	args->pkt_sent = 0;
 
-	uint8_t *buf = talloc_size(args, 65535);
-	size_t   len = 65535;
-
-	args->target_sent  = 0;
-	args->target_count = tot_cnt;
-
-	printf("Scanning %zu ports on %zu hosts...\n", prt_cnt, tgt_cnt);
+	rcu_register_thread();
 
 	pthread_cond_signal(&args->send_started);
 
-	/* TODO: randomize targets */
-	for (size_t i = 0; i < tot_cnt; i++) {
-		int pkt_len;
+	while (!args->done) {
+		struct pkt *pkt;
+		struct cds_wfcq_node *node;
 
 		bucket_consume(&bucket);
 
-		uint32_t daddr = range_list_pick(args->targets,
-		                              (i % tgt_cnt) / args->count);
-		uint16_t dport = range_list_pick(args->ports,
-		                              (i / tgt_cnt) / args->count);
+		node = cds_wfcq_dequeue_blocking(&args->queue_head,
+		                                 &args->queue_tail);
+		if (!node) continue;
 
-		pkt_len = script_assemble(L, mem, args, buf, len, daddr, dport);
+		pkt = caa_container_of(node, struct pkt, queue);
+
+		int pkt_len = pkt_pack(buf, len, pkt);
 		if (pkt_len < 0)
 			continue;
 
 		args->netif->inject(args->netif, buf, pkt_len);
+		args->pkt_sent++;
 
-		args->target_sent++;
+		if (pkt->probe)
+			args->pkt_probe++;
+
+		pkt_free(pkt);
 	}
-
-	script_close(L);
 
 	return NULL;
 }
@@ -259,24 +264,64 @@ static void *recv_cb(void *p) {
 	struct hype_args *args = p;
 
 	void *L   = script_load(args);
-	void *mem = talloc_new(args);
 
-	args->target_recv = 0;
+	args->pkt_recv = 0;
 
 	pthread_cond_signal(&args->recv_started);
 
 	while (!args->done) {
 		int rc, len;
+		struct pkt *pkt = NULL;
 
 		const uint8_t *buf = args->netif->capture(args->netif, &len);
 		if (buf == NULL)
 			continue;
 
-		rc = script_analyze(L, mem, args, (uint8_t *) buf, len);
+		rc = pkt_unpack(NULL, (uint8_t *) buf, len, &pkt);
+		if (!rc)
+			continue;
+
+		rc = script_analyze(L, args, pkt);
 		if (rc < 0)
 			continue;
 
-		args->target_recv++;
+		pkt_free(pkt);
+
+		args->pkt_recv++;
+	}
+
+	script_close(L);
+
+	return NULL;
+}
+
+static void *loop_cb(void *p) {
+	struct hype_args *args = p;
+
+	int rc;
+
+	void *L = script_load(args);
+
+	size_t tgt_cnt = range_list_count(args->targets);
+	size_t prt_cnt = range_list_count(args->ports);
+	size_t tot_cnt = tgt_cnt * prt_cnt * args->count;
+
+	args->pkt_count = tot_cnt;
+
+	printf("Scanning %zu ports on %zu hosts...\n", prt_cnt, tgt_cnt);
+
+	pthread_cond_signal(&args->loop_started);
+
+	/* TODO: randomize targets */
+	for (size_t i = 0; i < tot_cnt; i++) {
+		uint32_t daddr = range_list_pick(args->targets,
+		                              (i % tgt_cnt) / args->count);
+		uint16_t dport = range_list_pick(args->ports,
+		                              (i / tgt_cnt) / args->count);
+
+		rc = script_assemble(L, args, daddr, dport);
+		if (rc < 0)
+			continue;
 	}
 
 	script_close(L);
@@ -286,30 +331,31 @@ static void *recv_cb(void *p) {
 
 static void status_line(struct hype_args *args) {
 	/* TODO: handle ctrl+c */
-	uint64_t tot      = args->target_count;
+	uint64_t tot      = args->pkt_count;
 	uint64_t now_old  = time_now();
-	uint64_t sent_old = args->target_sent;
+	uint64_t sent_old = args->pkt_sent;
 
 	while (1) {
 		uint64_t now   = time_now();
-		uint64_t sent  = args->target_sent;
+		uint64_t sent  = args->pkt_sent;
+		uint64_t probe = args->pkt_probe;
 
 		double rate    = (sent - sent_old) / ((now - now_old) / 1e6);
-		double percent = (double) sent * 100 / tot;
+		double percent = (double) probe * 100 / tot;
 
 		if (!args->quiet) {
 			fprintf(stderr, "\033[K");
 			fprintf(stderr, "Progress: %3.2f%% ", percent);
 			fprintf(stderr, "Rate: %3.2fkpps ", rate / 1000);
 			fprintf(stderr, "Sent: %zu ", sent);
-			fprintf(stderr, "Replies: %zu ", args->target_recv);
+			fprintf(stderr, "Replies: %zu ", args->pkt_recv);
 			fprintf(stderr, "\r");
 		}
 
 		now_old  = now;
 		sent_old = sent;
 
-		if (sent == tot)
+		if (probe == tot)
 			break;
 
 		time_sleep(250000);

@@ -50,6 +50,8 @@
 
 extern int luaL_register_pack(lua_State *L);
 
+static struct pkt *get_pkt(lua_State *L, struct hype_args *args);
+
 static int get_type(lua_State *L);
 
 static int get_ip4(lua_State *L, struct ip4_hdr *ip4);
@@ -149,15 +151,9 @@ void script_close(void *L) {
 	lua_close(L);
 }
 
-int script_assemble(void *L, void *mem, struct hype_args *args,
-                    uint8_t *buf, size_t buf_len,
+int script_assemble(void *L, struct hype_args *args,
                     uint32_t daddr, uint16_t dport) {
 	int rc;
-
-	_ta_free_ void *ta = talloc_new(mem);
-
-	size_t plen = 0;
-	struct pkt *pkt = NULL;
 
 	char dst_addr[INET_ADDRSTRLEN];
 	daddr = htonl(daddr);
@@ -186,69 +182,25 @@ int script_assemble(void *L, void *mem, struct hype_args *args,
 		fail_printf("Error running script: %s", err);
 	}
 
-	while (lua_gettop(L) != 0) {
-		if (!lua_istable(L, -1))
-			fail_printf("Invalid packet type");
-
-		uint16_t type = get_type(L);
-
-		struct pkt *p = pkt_new(ta, type);
-		DL_APPEND(pkt, p);
-
-		switch (type) {
-		case TYPE_IP4:
-			p->length = get_ip4(L, &p->p.ip4);
-			break;
-
-		case TYPE_ICMP:
-			p->length = get_icmp(L, &p->p.icmp);
-			break;
-
-		case TYPE_UDP:
-			p->length = get_udp(L, &p->p.udp);
-			break;
-
-		case TYPE_TCP:
-			p->length = get_tcp(L, &p->p.tcp);
-			break;
-
-		case TYPE_RAW:
-			p->length = get_raw(L, &p->p.raw);
-			break;
-
-		default:
-			fail_printf("Invalid packet type: %u", type);
-		}
-
-		plen += p->length;
-		lua_pop(L, 1);
-	}
-
-	struct pkt *eth = pkt_new(ta, TYPE_ETH);
-	DL_APPEND(pkt, eth);
-
-	pkt_build_eth(eth, args->local_mac, args->gateway_mac, 0);
+	struct pkt *pkt = get_pkt(L, args);
+	pkt->probe = true;
 
 	assert(lua_gettop(L) == 0);
 
-	return pkt_pack(buf, buf_len, pkt);
+	cds_wfcq_enqueue(&args->queue_head, &args->queue_tail, &pkt->queue);
+
+	return 0;
 
 error:
 	lua_settop(L, 0);
 	return -1;
 }
 
-int script_analyze(void *L, void *mem, struct hype_args *args,
-                   uint8_t *buf, size_t buf_len) {
+int script_analyze(void *L, struct hype_args *args, struct pkt *pkt)
+{
 	int rc, n = 1;
 
-	_ta_free_ void *ta = talloc_new(mem);
-
-	struct pkt *pkt = NULL, *cur;
-
-	rc = pkt_unpack(ta, buf, buf_len, &pkt);
-	if (!rc)
-		goto error;
+	struct pkt *cur;
 
 	assert(lua_gettop(L) == 0);
 
@@ -466,22 +418,24 @@ static int hype_print(lua_State *L) {
 	return 0;
 }
 
-/* TODO: avoid code duplication */
-/* TODO: add packets to a queue instead of sending (for rate limiting) */
 static int hype_send(lua_State *L) {
-	int pkt_len;
 	struct hype_args *args = NULL;
 
 	lua_getfield(L, LUA_REGISTRYINDEX, "args");
 	args = lua_touserdata(L, -1);
 	lua_pop(L, 1);
 
-	void *ta = talloc_new(args);
+	struct pkt *pkt = get_pkt(L, args);
+	assert(lua_gettop(L) == 0);
 
-	uint8_t *buf = talloc_size(ta, 65535);
-	size_t   len = 65535;
+	cds_wfcq_enqueue(&args->queue_head, &args->queue_tail, &pkt->queue);
 
-	size_t plen = 0;
+	lua_pushboolean(L, 1);
+
+	return 1;
+}
+
+static struct pkt *get_pkt(lua_State *L, struct hype_args *args) {
 	struct pkt *pkt = NULL;
 
 	while (lua_gettop(L) != 0) {
@@ -490,7 +444,7 @@ static int hype_send(lua_State *L) {
 
 		uint16_t type = get_type(L);
 
-		struct pkt *p = pkt_new(ta, type);
+		struct pkt *p = pkt_new(NULL, type);
 		DL_APPEND(pkt, p);
 
 		switch (type) {
@@ -518,23 +472,15 @@ static int hype_send(lua_State *L) {
 			luaL_error(L, "Invalid packet type: %u", type);
 		}
 
-		plen += p->length;
 		lua_pop(L, 1);
 	}
 
-	struct pkt *eth = pkt_new(ta, TYPE_ETH);
+	struct pkt *eth = pkt_new(NULL, TYPE_ETH);
 	DL_APPEND(pkt, eth);
 
 	pkt_build_eth(eth, args->local_mac, args->gateway_mac, 0);
 
-	assert(lua_gettop(L) == 0);
-
-	pkt_len = pkt_pack(buf, len, pkt);
-	if (pkt_len < 0)
-		return 0;
-
-	args->netif->inject(args->netif, buf, pkt_len);
-	return 0;
+	return pkt;
 }
 
 #define luaH_getfield(STATE, FIELD, TYPE, OUT)				\

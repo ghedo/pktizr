@@ -85,6 +85,8 @@ struct pkt *pkt_new(void *ta, enum pkt_type type) {
 		fail_printf("Invalid packet type: %d", type);
 	}
 
+	cds_wfcq_node_init(&p->queue);
+
 	return p;
 }
 
