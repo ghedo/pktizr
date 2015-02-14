@@ -31,5 +31,5 @@
 void *script_load(struct hype_args *args);
 void script_close(void *L);
 
-int script_assemble(void *L,struct hype_args *args,uint32_t addr,uint16_t port);
-int script_analyze(void *L, struct hype_args *args, struct pkt *pkt);
+int script_loop(void *L, struct hype_args *args, uint32_t addr, uint16_t port);
+int script_recv(void *L, struct hype_args *args, struct pkt *pkt);

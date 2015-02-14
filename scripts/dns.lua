@@ -10,7 +10,7 @@ local raw = hype.Raw({})
 local dns_query = '\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x07\x65\x78\x61\x6d\x70\x6c\x65\x03\x63\x6f\x6d\x00\x00\x01\x00\x01'
 local dns_length = string.len(dns_query)
 
-function assemble(addr, port)
+function loop(addr, port)
 	ip4.dst = addr
 
 	udp.dport = port
@@ -21,7 +21,7 @@ function assemble(addr, port)
 	return ip4, udp, raw
 end
 
-function analyze(pkts)
+function recv(pkts)
 	local ip4 = pkts[1]
 	local udp = pkts[2]
 	local dns = pkts[3]

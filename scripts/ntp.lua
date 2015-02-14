@@ -10,7 +10,7 @@ local ip4 = hype.IP({id=1, src=hype.local_addr})
 local udp = hype.UDP({sport=64434})
 local raw = hype.Raw({payload=ntp_query})
 
-function assemble(addr, port)
+function loop(addr, port)
 	ip4.dst = addr
 
 	udp.dport = port
@@ -18,7 +18,7 @@ function assemble(addr, port)
 	return ip4, udp, raw
 end
 
-function analyze(pkts)
+function recv(pkts)
 	local ip4 = pkts[1]
 	local udp = pkts[2]
 	local ntp = pkts[3]

@@ -6,7 +6,7 @@ local ip4  = hype.IP({id=1, src=hype.local_addr})
 local icmp = hype.ICMP({type=8, id=1})
 local raw  = hype.Raw({})
 
-function assemble(addr, port)
+function loop(addr, port)
 	ip4.dst = addr
 
 	icmp.seq = hype.cookie16(hype.local_addr, addr, 65535, 0)
@@ -16,7 +16,7 @@ function assemble(addr, port)
 	return ip4, icmp, raw
 end
 
-function analyze(pkts)
+function recv(pkts)
 	local ip4  = pkts[1]
 	local icmp = pkts[2]
 	local raw  = pkts[3]

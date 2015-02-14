@@ -281,7 +281,7 @@ static void *recv_cb(void *p) {
 		if (!rc)
 			continue;
 
-		rc = script_analyze(L, args, pkt);
+		rc = script_recv(L, args, pkt);
 		if (rc < 0)
 			continue;
 
@@ -319,7 +319,7 @@ static void *loop_cb(void *p) {
 		uint16_t dport = range_list_pick(args->ports,
 		                              (i / tgt_cnt) / args->count);
 
-		rc = script_assemble(L, args, daddr, dport);
+		rc = script_loop(L, args, daddr, dport);
 		if (rc < 0)
 			continue;
 	}

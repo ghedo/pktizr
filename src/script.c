@@ -151,7 +151,7 @@ void script_close(void *L) {
 	lua_close(L);
 }
 
-int script_assemble(void *L, struct hype_args *args,
+int script_loop(void *L, struct hype_args *args,
                     uint32_t daddr, uint16_t dport) {
 	int rc;
 
@@ -162,7 +162,7 @@ int script_assemble(void *L, struct hype_args *args,
 	assert(lua_gettop(L) == 0);
 
 	luaL_checkstack(L, 1, "OOM");
-	lua_getglobal(L, "assemble");
+	lua_getglobal(L, "loop");
 
 	if (lua_isnil(L, -1))
 		goto error;
@@ -196,7 +196,7 @@ error:
 	return -1;
 }
 
-int script_analyze(void *L, struct hype_args *args, struct pkt *pkt)
+int script_recv(void *L, struct hype_args *args, struct pkt *pkt)
 {
 	int rc, n = 1;
 
@@ -205,7 +205,7 @@ int script_analyze(void *L, struct hype_args *args, struct pkt *pkt)
 	assert(lua_gettop(L) == 0);
 
 	luaL_checkstack(L, 1, "OOM");
-	lua_getglobal(L, "analyze");
+	lua_getglobal(L, "recv");
 
 	if (lua_isnil(L, -1))
 		goto error;
