@@ -72,7 +72,6 @@ static struct option long_opts[] = {
 
 static void *send_cb(void *p);
 static void *recv_cb(void *p);
-static void *loop_cb(void *p);
 
 static void status_line(struct hype_args *args);
 
@@ -199,11 +198,8 @@ int main(int argc, char *argv[]) {
 
 	START_THREAD(recv_mutex, recv_started, recv_thread, recv_cb, args);
 	START_THREAD(send_mutex, send_started, send_thread, send_cb, args);
-	START_THREAD(loop_mutex, loop_started, loop_thread, loop_cb, args);
 
 	status_line(args);
-
-	pthread_join(args->loop_thread, NULL);
 
 	time_sleep(args->wait * 1e6);
 
@@ -217,30 +213,17 @@ int main(int argc, char *argv[]) {
 	return 0;
 }
 
-static void *send_cb(void *p) {
-	struct hype_args *args = p;
-
-	uint8_t *buf = talloc_size(args, 65535);
-	size_t   len = 65535;
-
-	struct bucket bucket;
-	bucket_init(&bucket, args->rate);
-
-	args->pkt_sent = 0;
-
-	rcu_register_thread();
-
-	pthread_cond_signal(&args->send_started);
-
-	while (!args->done) {
+static void flush_packets(struct hype_args *args, uint8_t *buf, size_t len,
+                          struct bucket *bucket) {
+	while (1) {
 		struct pkt *pkt;
 		struct cds_wfcq_node *node;
 
-		bucket_consume(&bucket);
+		bucket_consume(bucket);
 
 		node = cds_wfcq_dequeue_blocking(&args->queue_head,
 		                                 &args->queue_tail);
-		if (!node) continue;
+		if (!node) break;
 
 		pkt = caa_container_of(node, struct pkt, queue);
 
@@ -256,6 +239,53 @@ static void *send_cb(void *p) {
 
 		pkt_free(pkt);
 	}
+}
+
+static void *send_cb(void *p) {
+	struct hype_args *args = p;
+
+	int rc;
+
+	void *L = script_load(args);
+
+	size_t tgt_cnt = range_list_count(args->targets);
+	size_t prt_cnt = range_list_count(args->ports);
+	size_t tot_cnt = tgt_cnt * prt_cnt * args->count;
+
+	args->pkt_count = tot_cnt;
+
+	uint8_t *buf = talloc_size(args, 65535);
+	size_t   len = 65535;
+
+	struct bucket bucket;
+	bucket_init(&bucket, args->rate);
+
+	args->pkt_sent = 0;
+
+	rcu_register_thread();
+
+	printf("Scanning %zu ports on %zu hosts...\n", prt_cnt, tgt_cnt);
+
+	pthread_cond_signal(&args->send_started);
+
+	/* TODO: randomize targets */
+	for (size_t i = 0; i < tot_cnt; i++) {
+		flush_packets(args, buf, len, &bucket);
+
+		uint32_t daddr = range_list_pick(args->targets,
+		                              (i % tgt_cnt) / args->count);
+		uint16_t dport = range_list_pick(args->ports,
+		                              (i / tgt_cnt) / args->count);
+
+		rc = script_loop(L, args, daddr, dport);
+		if (rc < 0)
+			continue;
+	}
+
+	while (!args->done)
+		flush_packets(args, buf, len, &bucket);
+
+	script_close(L);
 
 	return NULL;
 }
@@ -288,40 +318,6 @@ static void *recv_cb(void *p) {
 		pkt_free(pkt);
 
 		args->pkt_recv++;
-	}
-
-	script_close(L);
-
-	return NULL;
-}
-
-static void *loop_cb(void *p) {
-	struct hype_args *args = p;
-
-	int rc;
-
-	void *L = script_load(args);
-
-	size_t tgt_cnt = range_list_count(args->targets);
-	size_t prt_cnt = range_list_count(args->ports);
-	size_t tot_cnt = tgt_cnt * prt_cnt * args->count;
-
-	args->pkt_count = tot_cnt;
-
-	printf("Scanning %zu ports on %zu hosts...\n", prt_cnt, tgt_cnt);
-
-	pthread_cond_signal(&args->loop_started);
-
-	/* TODO: randomize targets */
-	for (size_t i = 0; i < tot_cnt; i++) {
-		uint32_t daddr = range_list_pick(args->targets,
-		                              (i % tgt_cnt) / args->count);
-		uint16_t dport = range_list_pick(args->ports,
-		                              (i / tgt_cnt) / args->count);
-
-		rc = script_loop(L, args, daddr, dport);
-		if (rc < 0)
-			continue;
 	}
 
 	script_close(L);
