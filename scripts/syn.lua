@@ -32,6 +32,12 @@ function recv(pkts)
 		return
 	end
 
+	local src = ip4.src
+	local dst = ip4.dst
+
+	local sport = tcp.sport
+	local dport = tcp.dport
+
 	local status = "unknown"
 
 	if tcp.syn then
@@ -41,6 +47,21 @@ function recv(pkts)
 		return -- don't print closed ports
 	end
 
-	hype.print("Port %u at %s is %s", tcp.sport, ip4.src, status)
+	ip4.src = dst
+	ip4.dst = src
+
+	tcp.sport = dport
+	tcp.dport = sport
+	tcp.doff  = 5
+	tcp.syn   = false
+	tcp.psh   = false
+	tcp.ack   = false
+	tcp.rst   = true
+	tcp.seq   = tcp.ack_seq
+	tcp.ack_seq = 0
+
+	hype.send(ip4, tcp)
+
+	hype.print("Port %u at %s is %s", sport, src, status)
 	return true
 end
