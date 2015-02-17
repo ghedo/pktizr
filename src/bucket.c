@@ -55,10 +55,8 @@ bool bucket_consume(struct bucket *t) {
 	if (t->tokens > t->rate)
 		t->tokens = t->rate;
 
-	if (t->tokens < 1.0) {
-		time_sleep((1.0 - t->tokens) / 1e6);
+	if (t->tokens < 1.0)
 		return bucket_consume(t);
-	}
 
 	t->timestamp = now;
 
