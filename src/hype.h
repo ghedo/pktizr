@@ -56,8 +56,15 @@ struct hype_args {
 	pthread_mutex_t recv_mutex;
 	pthread_cond_t  recv_started;
 
+	pthread_t       loop_thread;
+	pthread_mutex_t loop_mutex;
+	pthread_cond_t  loop_started;
+
 	struct cds_wfcq_head queue_head;
 	struct cds_wfcq_tail queue_tail;
+
+	struct cds_wfcq_head pqueue_head;
+	struct cds_wfcq_tail pqueue_tail;
 
 	uint32_t local_addr;
 	uint32_t gateway_addr;

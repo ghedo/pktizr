@@ -428,7 +428,7 @@ static int hype_send(lua_State *L) {
 	struct pkt *pkt = get_pkt(L, args);
 	assert(lua_gettop(L) == 0);
 
-	cds_wfcq_enqueue(&args->queue_head, &args->queue_tail, &pkt->queue);
+	cds_wfcq_enqueue(&args->pqueue_head, &args->pqueue_tail, &pkt->queue);
 
 	lua_pushboolean(L, 1);
 
