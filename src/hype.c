@@ -195,7 +195,6 @@ int main(int argc, char *argv[]) {
 
 	rcu_init();
 
-	cds_wfcq_init(&args->pqueue_head, &args->pqueue_tail);
 	cds_wfcq_init(&args->queue_head, &args->queue_tail);
 
 	START_THREAD(recv_mutex, recv_started, recv_thread, recv_cb, args);
@@ -240,11 +239,8 @@ static void *send_cb(void *p) {
 
 		bucket_consume(&bucket);
 
-		node = cds_wfcq_dequeue_blocking(&args->pqueue_head,
-		                                 &args->pqueue_tail);
-		if (!node)
-			node = cds_wfcq_dequeue_blocking(&args->queue_head,
-		                                         &args->queue_tail);
+		node = cds_wfcq_dequeue_blocking(&args->queue_head,
+		                                 &args->queue_tail);
 		if (!node) continue;
 
 		pkt = caa_container_of(node, struct pkt, queue);
@@ -313,6 +309,9 @@ static void *loop_cb(void *p) {
 	size_t prt_cnt = range_list_count(args->ports);
 	size_t tot_cnt = tgt_cnt * prt_cnt * args->count;
 
+	struct bucket bucket;
+	bucket_init(&bucket, args->rate);
+
 	args->pkt_count = tot_cnt;
 
 	printf("Scanning %zu ports on %zu hosts...\n", prt_cnt, tgt_cnt);
@@ -321,6 +320,8 @@ static void *loop_cb(void *p) {
 
 	/* TODO: randomize targets */
 	for (size_t i = 0; i < tot_cnt; i++) {
+		bucket_consume(&bucket);
+
 		uint32_t daddr = range_list_pick(args->targets,
 		                              (i % tgt_cnt) / args->count);
 		uint16_t dport = range_list_pick(args->ports,
