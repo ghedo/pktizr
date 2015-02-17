@@ -146,7 +146,7 @@ int main(int argc, char *argv[]) {
 				fail_printf("Invalid wait value");
 			break;
 
-		case 't':
+		case 'c':
 			args->count = strtoull(optarg, &end, 10);
 			if (*end != '\0')
 				fail_printf("Invalid wait value");
