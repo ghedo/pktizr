@@ -227,7 +227,8 @@ static void *send_cb(void *p) {
 	struct bucket bucket;
 	bucket_init(&bucket, args->rate);
 
-	args->pkt_sent = 0;
+	args->pkt_sent  = 0;
+	args->pkt_probe = 0;
 
 	rcu_register_thread();
 
@@ -250,7 +251,7 @@ static void *send_cb(void *p) {
 
 		int pkt_len = pkt_pack(buf, len, pkt);
 		if (pkt_len < 0)
-			continue;
+			goto done;
 
 		args->netif->inject(args->netif, buf, pkt_len);
 		args->pkt_sent++;
@@ -258,6 +259,7 @@ static void *send_cb(void *p) {
 		if (pkt->probe)
 			args->pkt_probe++;
 
+done:
 		pkt_free(pkt);
 	}
 
