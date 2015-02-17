@@ -253,6 +253,7 @@ static void *send_cb(void *p) {
 	size_t tot_cnt = tgt_cnt * prt_cnt * args->count;
 
 	args->pkt_count = tot_cnt;
+	args->pkt_probe = 0;
 
 	uint8_t *buf = talloc_size(args, 65535);
 	size_t   len = 65535;
@@ -313,11 +314,12 @@ static void *recv_cb(void *p) {
 
 		rc = script_recv(L, args, pkt);
 		if (rc < 0)
-			continue;
-
-		pkt_free(pkt);
+			goto done;
 
 		args->pkt_recv++;
+
+done:
+		pkt_free(pkt);
 	}
 
 	script_close(L);
