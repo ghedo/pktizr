@@ -229,6 +229,9 @@ static void *send_cb(void *p) {
 	args->pkt_sent  = 0;
 	args->pkt_probe = 0;
 
+	if (pthread_setname_np(pthread_self(), "hype: send"))
+		fail_printf("Error setting thread name");
+
 	rcu_register_thread();
 
 	pthread_cond_signal(&args->send_started);
@@ -265,9 +268,12 @@ done:
 static void *recv_cb(void *p) {
 	struct hype_args *args = p;
 
-	void *L   = script_load(args);
+	void *L = script_load(args);
 
 	args->pkt_recv = 0;
+
+	if (pthread_setname_np(pthread_self(), "hype: recv"))
+		fail_printf("Error setting thread name");
 
 	pthread_cond_signal(&args->recv_started);
 
@@ -313,6 +319,9 @@ static void *loop_cb(void *p) {
 	bucket_init(&bucket, args->rate);
 
 	args->pkt_count = tot_cnt;
+
+	if (pthread_setname_np(pthread_self(), "hype: loop"))
+		fail_printf("Error setting thread name");
 
 	printf("Scanning %zu ports on %zu hosts...\n", prt_cnt, tgt_cnt);
 
