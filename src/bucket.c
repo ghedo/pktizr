@@ -44,8 +44,12 @@ void bucket_init(struct bucket *t, uint64_t rate) {
 }
 
 bool bucket_consume(struct bucket *t) {
-	uint64_t now   = time_now();
-	double elapsed = (now - t->timestamp) / 1e6;
+	uint64_t now;
+	double elapsed;
+
+again:
+	now = time_now();
+	elapsed = (now - t->timestamp) / 1e6;
 
 	if (!t->rate)
 		return true;
@@ -56,7 +60,7 @@ bool bucket_consume(struct bucket *t) {
 		t->tokens = t->rate;
 
 	if (t->tokens < 1.0)
-		return bucket_consume(t);
+		goto again;
 
 	t->timestamp = now;
 
