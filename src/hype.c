@@ -255,6 +255,8 @@ static void *send_cb(void *p) {
 		args->netif->inject(args->netif, buf, pkt_len);
 		args->pkt_sent++;
 
+		bucket.tokens--;
+
 		if (pkt->probe)
 			args->pkt_probe++;
 
@@ -339,6 +341,8 @@ static void *loop_cb(void *p) {
 		rc = script_loop(L, args, daddr, dport);
 		if (rc < 0)
 			continue;
+
+		bucket.tokens--;
 	}
 
 	script_close(L);
