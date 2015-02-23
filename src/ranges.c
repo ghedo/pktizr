@@ -149,15 +149,32 @@ size_t range_list_count(struct range *list) {
 void range_list_add(void *ta, struct range **list, uint32_t start, uint32_t end) {
 	size_t c = talloc_get_size(*list) / sizeof(**list);
 
-	*list = talloc_realloc(ta, *list, struct range, c + 1);
-
 	if (c < 1) {
+		*list = talloc_realloc(ta, *list, struct range, c + 1);
 		(*list)[0].start = start;
 		(*list)[0].end   = end;
 		return;
 	}
 
-	/* TODO: handle range overlap */
+	for (size_t i = 0; i < c; i++) {
+		struct range *cur = &(*list)[i];
+
+		if ((start >= cur->start) && (end <= cur->end))
+			return; /* skip */
+
+		if ((start < cur->start) && (end >= cur->start)) {
+			cur->start = start;
+			return;
+		}
+
+		if ((start < cur->end) && (end >= cur->end)) {
+			cur->end = end;
+			return;
+		}
+	}
+
+	*list = talloc_realloc(ta, *list, struct range, c + 1);
+
 	for (size_t i = 0; i < c; i++) {
 		struct range *cur = &(*list)[i];
 
