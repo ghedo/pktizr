@@ -173,3 +173,10 @@ void range_list_add(void *ta, struct range **list, uint32_t start, uint32_t end)
 	(*list)[c].start = start;
 	(*list)[c].end   = end;
 }
+
+void range_list_dump(struct range *list) {
+	size_t c = talloc_get_size(list) / sizeof(*list);
+
+	for (size_t i = 0; i < c; i++)
+		ok_printf("[ %u - %u ]", list[i].start, list[i].end);
+}
