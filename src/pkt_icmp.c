@@ -46,7 +46,7 @@ void pkt_pack_icmp(struct pkt *p, uint8_t *buf, size_t len) {
 	out->id     = htons(p->p.icmp.id);
 	out->seq    = htons(p->p.icmp.seq);
 
-	out->chksum = htons(pkt_chksum(buf, len, 0));
+	out->chksum = pkt_chksum(buf, len, 0);
 }
 
 int pkt_unpack_icmp(struct pkt *p, uint8_t *buf, size_t len) {

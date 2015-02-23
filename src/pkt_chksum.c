@@ -39,7 +39,7 @@ static uint32_t sum(uint8_t *buf, size_t len) {
 	uint32_t csum = 0;
 
 	for (size_t i = 0; i < len - 1; i += 2)
-		csum += (buf[i] << 8) | buf[i + 1];
+		csum += *(uint16_t *) &buf[i];
 
 	if (len & 1)
 		csum += buf[len - 1] << 8;
@@ -50,8 +50,10 @@ static uint32_t sum(uint8_t *buf, size_t len) {
 uint16_t pkt_chksum(uint8_t *buf, size_t len, uint32_t csum) {
 	csum += sum(buf, len);
 
-	csum = (csum >> 16) + (csum & 0xffff);
-	return ~(csum + (csum >> 16));
+	while (csum >> 16)
+		csum = (csum >> 16) + (csum & 0xFFFF);
+
+	return ~csum;
 }
 
 uint32_t pkt_pseudo_chksum(struct ip4_hdr *h) {

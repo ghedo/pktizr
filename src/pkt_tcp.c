@@ -62,7 +62,7 @@ void pkt_pack_tcp(struct pkt *p, uint8_t *buf, size_t len) {
 	if (p->next && (p->next->type == TYPE_IP4))
 		csum = pkt_pseudo_chksum(&p->next->p.ip4);
 
-	out->chksum  = htons(pkt_chksum(buf, len, csum));
+	out->chksum  = pkt_chksum(buf, len, csum);
 }
 
 int pkt_unpack_tcp(struct pkt *p, uint8_t *buf, size_t len) {
