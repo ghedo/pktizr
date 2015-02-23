@@ -71,6 +71,9 @@ int resolv_addr_to_mac(struct netif *netif,
 	struct pkt *pkt = NULL;
 	uint8_t buf[ETH_PKTLEN + ARP_PKTLEN];
 
+	uint16_t tries = 5;
+	uint64_t start, timeout = 1000000;
+
 	saddr = htonl(saddr);
 	daddr = htonl(daddr);
 
@@ -90,10 +93,13 @@ int resolv_addr_to_mac(struct netif *netif,
 	if (len < 0)
 		fail_printf("Error packing ARP packet");
 
+again:
+	if (tries-- <= 0)
+		return -1;
+
 	netif->inject(netif, buf, len);
 
-	uint64_t start   = time_now();
-	uint64_t timeout = 5000000; /* 5 seconds in microseconds */
+	start = time_now();
 
 	while (1) {
 		int rsp_len, n;
@@ -101,7 +107,7 @@ int resolv_addr_to_mac(struct netif *netif,
 
 		const uint8_t *rsp = netif->capture(netif, &rsp_len);
 		if ((time_now() - start) > timeout)
-			return -1;
+			goto again;
 
 		if (rsp == NULL)
 			continue;
