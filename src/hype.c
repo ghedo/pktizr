@@ -83,9 +83,8 @@ static inline void help(void);
 #define START_THREAD(MUTEX, COND, THREAD, FUNC, ARGS)	\
 	pthread_mutex_init(&ARGS->MUTEX, NULL);		\
 	pthread_cond_init(&ARGS->COND, NULL);		\
-	pthread_create(&ARGS->THREAD, NULL, FUNC, ARGS);\
-							\
 	pthread_mutex_lock(&ARGS->MUTEX);		\
+	pthread_create(&ARGS->THREAD, NULL, FUNC, ARGS);\
 	pthread_cond_wait(&ARGS->COND, &args->MUTEX);	\
 	pthread_mutex_unlock(&ARGS->MUTEX);		\
 
@@ -234,7 +233,9 @@ static void *send_cb(void *p) {
 
 	rcu_register_thread();
 
+	pthread_mutex_lock(&args->send_mutex);
 	pthread_cond_signal(&args->send_started);
+	pthread_mutex_unlock(&args->send_mutex);
 
 	while (!args->done) {
 		struct pkt *pkt;
@@ -277,7 +278,9 @@ static void *recv_cb(void *p) {
 	if (pthread_setname_np(pthread_self(), "hype: recv"))
 		fail_printf("Error setting thread name");
 
+	pthread_mutex_lock(&args->recv_mutex);
 	pthread_cond_signal(&args->recv_started);
+	pthread_mutex_unlock(&args->recv_mutex);
 
 	while (!args->done) {
 		int rc, len;
@@ -327,7 +330,9 @@ static void *loop_cb(void *p) {
 
 	printf("Scanning %zu ports on %zu hosts...\n", prt_cnt, tgt_cnt);
 
+	pthread_mutex_lock(&args->loop_mutex);
 	pthread_cond_signal(&args->loop_started);
+	pthread_mutex_unlock(&args->loop_mutex);
 
 	/* TODO: randomize targets */
 	for (size_t i = 0; i < tot_cnt; i++) {
