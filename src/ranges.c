@@ -35,6 +35,7 @@
 #include <arpa/inet.h>
 
 #include <talloc.h>
+#include <utlist.h>
 
 #include "ranges.h"
 #include "netif.h"
@@ -117,13 +118,13 @@ struct range *range_parse_ports(void *ta, char *spec) {
 }
 
 uint32_t range_list_pick(struct range *list, uint32_t index) {
-	size_t c = talloc_get_size(list) / sizeof(*list);
+	struct range *cur;
 
-	for (size_t i = 0; i < c; i++) {
-		size_t cnt = (list[i].end - list[i].start) + 1;
+	LL_FOREACH(list, cur) {
+		size_t cnt = (cur->end - cur->start) + 1;
 
 		if (index < cnt)
-			return list[i].start + index;
+			return cur->start + index;
 
 		index -= cnt;
 	}
@@ -137,28 +138,20 @@ uint32_t range_list_min(struct range *list) {
 }
 
 size_t range_list_count(struct range *list) {
-	size_t c = talloc_get_size(list) / sizeof(*list);
-
 	size_t count = 0;
-	for (size_t i = 0; i < c; i++)
-		count += (list[i].end - list[i].start) + 1;
+	struct range *cur;
+
+	LL_FOREACH(list, cur) {
+		count += (cur->end - cur->start) + 1;
+	}
 
 	return count;
 }
 
 void range_list_add(void *ta, struct range **list, uint32_t start, uint32_t end) {
-	size_t c = talloc_get_size(*list) / sizeof(**list);
+	struct range *cur, *tmp;
 
-	if (c < 1) {
-		*list = talloc_realloc(ta, *list, struct range, c + 1);
-		(*list)[0].start = start;
-		(*list)[0].end   = end;
-		return;
-	}
-
-	for (size_t i = 0; i < c; i++) {
-		struct range *cur = &(*list)[i];
-
+	LL_FOREACH_SAFE(*list, cur, tmp) {
 		if ((start >= cur->start) && (end <= cur->end))
 			return; /* skip */
 
@@ -173,27 +166,25 @@ void range_list_add(void *ta, struct range **list, uint32_t start, uint32_t end)
 		}
 	}
 
-	*list = talloc_realloc(ta, *list, struct range, c + 1);
+	struct range *new = talloc_ptrtype(ta, new);
 
-	for (size_t i = 0; i < c; i++) {
-		struct range *cur = &(*list)[i];
+	new->start = start;
+	new->end   = end;
 
+	LL_FOREACH_SAFE(*list, cur, tmp) {
 		if (end < cur->start) {
-			memmove(cur + 1, cur, (c - i) * sizeof(struct range));
-
-			cur->start = start;
-			cur->end   = end;
+			LL_PREPEND_ELEM(*list, cur, new);
 			return;
 		}
 	}
 
-	(*list)[c].start = start;
-	(*list)[c].end   = end;
+	LL_APPEND(*list, new);
 }
 
 void range_list_dump(struct range *list) {
-	size_t c = talloc_get_size(list) / sizeof(*list);
+	struct range *cur;
 
-	for (size_t i = 0; i < c; i++)
-		ok_printf("[ %u - %u ]", list[i].start, list[i].end);
+	LL_FOREACH(list, cur) {
+		ok_printf("[ %u - %u ]", cur->start, cur->end);
+	}
 }

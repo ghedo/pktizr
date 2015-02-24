@@ -31,12 +31,16 @@
 struct range {
 	uint32_t start;
 	uint32_t end;
+
+	struct range *next;
 };
 
 struct range *range_parse_targets(void *ta, char *spec);
 struct range *range_parse_ports(void *ta, char *spec);
 
-uint32_t range_list_pick(struct range *list, uint32_t index);
-size_t range_list_count(struct range *list);
-uint32_t range_list_min(struct range *list);
 void range_list_add(void *ta, struct range **list, uint32_t start, uint32_t end);
+
+uint32_t range_list_pick(struct range *list, uint32_t index);
+uint32_t range_list_min(struct range *list);
+
+size_t range_list_count(struct range *list);
