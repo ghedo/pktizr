@@ -84,7 +84,7 @@ static inline void help(void);
 	pthread_cond_init(&ARGS->COND, NULL);		\
 	pthread_mutex_lock(&ARGS->MUTEX);		\
 	pthread_create(&ARGS->THREAD, NULL, FUNC, ARGS);\
-	pthread_cond_wait(&ARGS->COND, &args->MUTEX);	\
+	pthread_cond_wait(&ARGS->COND, &ARGS->MUTEX);	\
 	pthread_mutex_unlock(&ARGS->MUTEX);		\
 
 int main(int argc, char *argv[]) {
