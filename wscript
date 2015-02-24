@@ -1,11 +1,30 @@
 # Copyright (C) 2015 Alessandro Ghedini <alessandro@ghedini.me>
 # This file is released under the 2 clause BSD license, see COPYING
 
+import re
+from waflib import Utils
+
 APPNAME = 'hype'
 VERSION = '0.1'
 
+_INSTALL_DIRS_LIST = [
+	('bindir',  '${DESTDIR}${PREFIX}/bin',      'binary files'),
+	('datadir', '${DESTDIR}${PREFIX}/share',    'data files'),
+	('docdir',  '${DATADIR}/doc/hype',          'documentation files'),
+	('mandir',  '${DATADIR}/man',               'man pages '),
+]
+
 def options(opt):
 	opt.load('compiler_c')
+
+	group = opt.get_option_group("build and install options")
+	for ident, default, desc in _INSTALL_DIRS_LIST:
+		group.add_option('--{0}'.format(ident),
+			type    = 'string',
+			dest    = ident,
+			default = default,
+			help    = 'directory for installing {0} [{1}]' \
+			            .format(desc, default))
 
 	opt.add_option('--sanitize', action='store', default=None,
 	               help='enable specified sanotizer (address, thread, ...)')
@@ -36,6 +55,15 @@ def configure(cfg):
 
 	cfg.load('compiler_c')
 
+	for ident, _, _ in _INSTALL_DIRS_LIST:
+		varname = ident.upper()
+		cfg.env[varname] = getattr(cfg.options, ident)
+
+		# keep substituting vars, until the paths are fully expanded
+		while re.match('\$\{([^}]+)\}', cfg.env[varname]):
+			cfg.env[varname] = \
+			  Utils.subst_vars(cfg.env[varname], cfg.env)
+
 	cfg.env.CFLAGS   += [ '-Wall', '-pedantic', '-g', '-std=gnu99' ]
 	cfg.env.CPPFLAGS += [ '-D_GNU_SOURCE' ]
 
@@ -60,6 +88,9 @@ def configure(cfg):
 	# pcap
 	my_check_cc(cfg, 'pcap', lib='pcap',
 	            header_name='pcap.h', mandatory=True)
+
+	# ronn
+	cfg.find_program('ronn', mandatory=False)
 
 	if cfg.options.sanitize == 'address':
 		cfg.env.CFLAGS  += [ '-fsanitize=address' ]
@@ -137,3 +168,21 @@ def build(bld):
 		use          = bld.env.deps,
 		install_path = bld.env.BINDIR
 	)
+
+	bld.install_files(bld.env.DOCDIR + '/scripts',
+	                  bld.path.ant_glob('scripts/*.lua'))
+
+	bld.declare_chain(
+		name         = 'ronn',
+		rule         = '${RONN} -r < ${SRC} > ${TGT}',
+		ext_in       = '.1.md',
+		ext_out      = '.1',
+		reentrant    = False,
+		install_path = bld.env.MANDIR + '/man1',
+	)
+
+	if bld.env['RONN']:
+		bld(
+			name    = 'manpages',
+			source  = bld.path.ant_glob('docs/*.md'),
+		)
