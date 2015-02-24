@@ -74,10 +74,9 @@ See the [man page](http://ghedo.github.io/hype/) for more information.
 hype is distributed as source code. Install with:
 
 ```bash
-$ mkdir build && cd build
-$ cmake ..
-$ make
-$ [sudo] make install
+$ ./bootstrap.py
+$ ./waf configure
+$ ./waf build
 ```
 
 ## COPYRIGHT
