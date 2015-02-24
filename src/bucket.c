@@ -31,8 +31,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include <talloc.h>
-
 #include "bucket.h"
 #include "printf.h"
 #include "util.h"

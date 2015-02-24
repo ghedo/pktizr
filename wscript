@@ -80,6 +80,12 @@ def configure(cfg):
 
 		cfg.msg('Checking for sanitizer', 'thread')
 
+	if cfg.options.sanitize == 'leak':
+		cfg.env.CFLAGS  += [ '-fsanitize=leak' ]
+		cfg.env.LINKFLAGS += [ '-fsanitize=leak' ]
+
+		cfg.msg('Checking for sanitizer', 'leak')
+
 def build(bld):
 	includes = [
 		'deps/lua-compat-5.2',
@@ -121,11 +127,6 @@ def build(bld):
 
 		# siphash
 		'deps/siphash/siphash24.c',
-
-		# tree allocator
-		'deps/ta/ta.c',
-		'deps/ta/ta_talloc.c',
-		'deps/ta/ta_utils.c',
 	]
 
 	bld.env.append_value('INCLUDES', includes)

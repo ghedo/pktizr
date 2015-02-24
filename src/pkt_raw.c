@@ -28,12 +28,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 
 #include <arpa/inet.h>
-
-#include <talloc.h>
 
 #include "pkt.h"
 
@@ -42,7 +41,7 @@ void pkt_pack_raw(struct pkt *p, uint8_t *buf, size_t len) {
 }
 
 int pkt_unpack_raw(struct pkt *p, uint8_t *buf, size_t len) {
-	p->p.raw.payload = talloc_size(p, len);
+	p->p.raw.payload = malloc(len);
 	p->p.raw.len     = len;
 
 	memcpy(p->p.raw.payload, buf, len);

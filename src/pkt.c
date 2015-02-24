@@ -33,7 +33,6 @@
 
 #include <arpa/inet.h>
 
-#include <talloc.h>
 #include <utlist.h>
 
 #include "pkt.h"
@@ -41,9 +40,7 @@
 #include "util.h"
 
 struct pkt *pkt_new(void *ta, enum pkt_type type) {
-	struct pkt *p = talloc_ptrtype(ta, p);
-
-	memset(p, 0, sizeof(*p));
+	struct pkt *p = calloc(1, sizeof(*p));
 
 	p->type = type;
 
@@ -54,7 +51,7 @@ struct pkt *pkt_new(void *ta, enum pkt_type type) {
 		break;
 
 	case TYPE_ARP:
-		pkt_build_arp(p, 0, 0, 0, NULL, NULL, NULL, NULL);
+		p->length = 8;
 		break;
 
 	case TYPE_IP4:
@@ -180,7 +177,7 @@ int pkt_unpack(void *ta, uint8_t *buf, size_t len, struct pkt **p) {
 	int next_type = TYPE_ETH;
 
 	while ((i < len) && (next_type != TYPE_NONE)) {
-		struct pkt *new = pkt_new(ta, next_type);
+		struct pkt *new = pkt_new(NULL, next_type);
 		DL_APPEND(pkt, new);
 
 		switch (next_type) {
@@ -235,6 +232,30 @@ void pkt_free(struct pkt *pkt) {
 
 	DL_FOREACH_SAFE(pkt, cur, tmp) {
 		DL_DELETE(pkt, cur);
-		talloc_free(cur);
+
+		switch (cur->type) {
+		case TYPE_ARP:
+			if (cur->p.arp.hwsrc)
+				free(cur->p.arp.hwsrc);
+
+			if (cur->p.arp.hwdst)
+				free(cur->p.arp.hwdst);
+
+			if (cur->p.arp.psrc)
+				free(cur->p.arp.psrc);
+
+			if (cur->p.arp.pdst)
+				free(cur->p.arp.pdst);
+
+			break;
+
+		case TYPE_RAW:
+			if (cur->p.raw.payload)
+				free(cur->p.raw.payload);
+
+			break;
+		}
+
+		free(cur);
 	}
 }

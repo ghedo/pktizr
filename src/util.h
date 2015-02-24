@@ -34,7 +34,6 @@
 #include <unistd.h>
 
 #define _free_ __attribute__((cleanup(freep)))
-#define _ta_free_ __attribute__((cleanup(ta_freep)))
 #define _close_ __attribute__((cleanup(closep)))
 
 static inline void freep(void *p) {
@@ -42,15 +41,6 @@ static inline void freep(void *p) {
 		return;
 
 	free(*(void **) p);
-
-	*(void **)p = NULL;
-}
-
-static inline void ta_freep(void *p) {
-	if (p == NULL)
-		return;
-
-	talloc_free(*(void **) p);
 
 	*(void **)p = NULL;
 }

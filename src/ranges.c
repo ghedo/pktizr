@@ -34,7 +34,6 @@
 
 #include <arpa/inet.h>
 
-#include <talloc.h>
 #include <utlist.h>
 
 #include "ranges.h"
@@ -166,7 +165,7 @@ void range_list_add(void *ta, struct range **list, uint32_t start, uint32_t end)
 		}
 	}
 
-	struct range *new = talloc_ptrtype(ta, new);
+	struct range *new = malloc(sizeof(*new));
 
 	new->start = start;
 	new->end   = end;
@@ -186,5 +185,15 @@ void range_list_dump(struct range *list) {
 
 	LL_FOREACH(list, cur) {
 		ok_printf("[ %u - %u ]", cur->start, cur->end);
+	}
+}
+
+void range_list_free(struct range *list) {
+	struct range *cur, *tmp;
+
+	LL_FOREACH_SAFE(list, cur, tmp) {
+		LL_DELETE(list, cur);
+
+		free(cur);
 	}
 }

@@ -39,8 +39,6 @@
 
 #include <linux/rtnetlink.h>
 
-#include <talloc.h>
-
 #include "routes.h"
 #include "printf.h"
 #include "util.h"

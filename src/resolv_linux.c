@@ -41,8 +41,6 @@
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 
-#include <talloc.h>
-
 #include "printf.h"
 #include "util.h"
 

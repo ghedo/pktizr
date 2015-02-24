@@ -34,7 +34,6 @@
 
 #include <arpa/inet.h>
 
-#include <talloc.h>
 #include <utlist.h>
 
 #include "netif.h"
@@ -66,8 +65,6 @@ int resolv_name_to_addr(const char *name, uint32_t *addr) {
 int resolv_addr_to_mac(struct netif *netif,
                        uint8_t *shost, uint32_t saddr,
                        uint8_t *dhost, uint32_t daddr) {
-	_ta_free_ void *ta = talloc_new(NULL);
-
 	struct pkt *pkt = NULL;
 	uint8_t buf[ETH_PKTLEN + ARP_PKTLEN];
 
@@ -77,19 +74,21 @@ int resolv_addr_to_mac(struct netif *netif,
 	saddr = htonl(saddr);
 	daddr = htonl(daddr);
 
-	struct pkt *arp = pkt_new(ta, TYPE_ARP);
+	struct pkt *arp = pkt_new(NULL, TYPE_ARP);
 	DL_APPEND(pkt, arp);
 
 	pkt_build_arp(arp, ARPHRD_ETHER, ETHERTYPE_IP, ARPOP_REQUEST,
 	              shost, (uint8_t *) &saddr,
 	              (uint8_t *) "\x00\x00\x00\x00\x00\x00", (uint8_t*)&daddr);
 
-	struct pkt *eth = pkt_new(ta, TYPE_ETH);
+	struct pkt *eth = pkt_new(NULL, TYPE_ETH);
 	DL_APPEND(pkt, eth);
 
 	pkt_build_eth(eth, shost, (uint8_t *) "\xff\xff\xff\xff\xff\xff", 0);
 
 	int len = pkt_pack(buf, sizeof(buf), pkt);
+	pkt_free(arp);
+
 	if (len < 0)
 		fail_printf("Error packing ARP packet");
 
@@ -112,7 +111,7 @@ again:
 		if (rsp == NULL)
 			continue;
 
-		n = pkt_unpack(ta, (uint8_t *) rsp, rsp_len, &rsp_pkt);
+		n = pkt_unpack(NULL, (uint8_t *) rsp, rsp_len, &rsp_pkt);
 		if (n < 2)
 			continue;
 
@@ -126,6 +125,8 @@ again:
 				continue;
 
 			memcpy(dhost, arp_pkt->p.arp.hwsrc, 6);
+
+			pkt_free(rsp_pkt);
 			break;
 		}
 	}

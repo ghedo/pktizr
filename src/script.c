@@ -39,7 +39,6 @@
 #include <lualib.h>
 #include <lauxlib.h>
 
-#include <talloc.h>
 #include <utlist.h>
 
 #include "hype.h"
@@ -686,7 +685,13 @@ static int get_raw(lua_State *L, struct raw_hdr *raw) {
 		if (!lua_isstring(L, -1))
 			fail_printf("Invalid value for field 'payload'");
 
-		raw->payload = (uint8_t *) lua_tolstring(L, -1, &raw->len);
+		const char *payload = lua_tolstring(L, -1, &raw->len);
+
+		if (raw->payload)
+			free(raw->payload);
+
+		raw->payload = malloc(raw->len);
+		memcpy(raw->payload, payload, raw->len);
 	}
 
 	lua_pop(L, 1);

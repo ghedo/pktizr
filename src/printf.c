@@ -36,8 +36,6 @@
 #include <syslog.h>
 #include <limits.h>
 
-#include <talloc.h>
-
 #include "printf.h"
 #include "util.h"
 

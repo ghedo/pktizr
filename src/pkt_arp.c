@@ -28,12 +28,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 
 #include <arpa/inet.h>
-
-#include <talloc.h>
 
 #include "pkt.h"
 
@@ -70,11 +69,17 @@ void pkt_build_arp(struct pkt *p, uint16_t hwtype, uint16_t ptype, uint16_t op,
 
 	p->p.arp.op = op;
 
-	p->p.arp.hwsrc  = hwsrc;
-	p->p.arp.psrc   = psrc;
+	p->p.arp.hwsrc = malloc(p->p.arp.hwlen);
+	memcpy(p->p.arp.hwsrc, hwsrc, p->p.arp.hwlen);
 
-	p->p.arp.hwdst  = hwdst;
-	p->p.arp.pdst   = pdst;
+	p->p.arp.psrc = malloc(p->p.arp.plen);
+	memcpy(p->p.arp.psrc, psrc, p->p.arp.plen);
+
+	p->p.arp.hwdst = malloc(p->p.arp.hwlen);
+	memcpy(p->p.arp.hwdst, hwdst, p->p.arp.hwlen);
+
+	p->p.arp.pdst = malloc(p->p.arp.plen);
+	memcpy(p->p.arp.pdst, pdst, p->p.arp.plen);
 
 	p->type   = TYPE_ARP;
 	p->length = 8 + p->p.arp.hwlen * 2 + p->p.arp.plen * 2;
@@ -124,11 +129,11 @@ int pkt_unpack_arp(struct pkt *p, uint8_t *buf, size_t len) {
 	if (len < (8 + p->p.arp.hwlen * 2 + p->p.arp.plen * 2))
 		return -1;
 
-	p->p.arp.hwsrc = talloc_size(p, p->p.arp.hwlen);
-	p->p.arp.hwdst = talloc_size(p, p->p.arp.hwlen);
+	p->p.arp.hwsrc = malloc(p->p.arp.hwlen);
+	p->p.arp.hwdst = malloc(p->p.arp.hwlen);
 
-	p->p.arp.psrc = talloc_size(p, p->p.arp.plen);
-	p->p.arp.pdst = talloc_size(p, p->p.arp.plen);
+	p->p.arp.psrc = malloc(p->p.arp.plen);
+	p->p.arp.pdst = malloc(p->p.arp.plen);
 
 	memcpy(p->p.arp.hwsrc, buf + i, p->p.arp.hwlen);
 	i += p->p.arp.hwlen;

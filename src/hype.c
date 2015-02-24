@@ -29,6 +29,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <getopt.h>
@@ -38,8 +39,6 @@
 
 #include <arpa/inet.h>
 #include <net/if.h>
-
-#include <talloc.h>
 
 #include <urcu.h>
 
@@ -91,14 +90,14 @@ static inline void help(void);
 int main(int argc, char *argv[]) {
 	int rc, i;
 
-	_ta_free_ struct hype_args *args = NULL;
+	_free_ struct hype_args *args = NULL;
 
 	if (argc < 4) {
 		help();
 		return 0;
 	}
 
-	args = talloc_ptrtype(NULL, args);
+	args = malloc(sizeof(*args));
 
 	/* TODO: add --exclude option */
 
@@ -117,12 +116,12 @@ int main(int argc, char *argv[]) {
 
 		switch (rc) {
 		case 'S':
-			args->script = talloc_strdup(args, optarg);
+			args->script = strdup(optarg);
 			break;
 
 		case 'p':
 			validate_optlist("--ports", optarg);
-			talloc_free(args->ports);
+			free(args->ports);
 
 			args->ports = range_parse_ports(args, optarg);
 			break;
@@ -213,14 +212,18 @@ int main(int argc, char *argv[]) {
 
 	args->netif->close(args->netif);
 
+	range_list_free(args->targets);
+	range_list_free(args->ports);
+	free(args->script);
+
 	return 0;
 }
 
 static void *send_cb(void *p) {
 	struct hype_args *args = p;
 
-	uint8_t *buf = talloc_size(args, 65535);
-	size_t   len = 65535;
+	uint8_t  buf[65535];
+	size_t   len = sizeof(buf);
 
 	struct bucket bucket;
 	bucket_init(&bucket, args->rate);
