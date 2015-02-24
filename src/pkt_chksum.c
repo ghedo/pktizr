@@ -42,7 +42,7 @@ static uint32_t sum(uint8_t *buf, size_t len) {
 		csum += *(uint16_t *) &buf[i];
 
 	if (len & 1)
-		csum += buf[len - 1] << 8;
+		csum += (uint16_t) buf[len - 1];
 
 	return csum;
 }
