@@ -1,7 +1,5 @@
 # vi: ft=python
 
-import waflib
-
 APPNAME = 'hype'
 VERSION = '0.1'
 
