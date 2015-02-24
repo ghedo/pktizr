@@ -1,4 +1,5 @@
-# vi: ft=python
+# Copyright (C) 2015 Alessandro Ghedini <alessandro@ghedini.me>
+# This file is released under the 2 clause BSD license, see COPYING
 
 APPNAME = 'hype'
 VERSION = '0.1'
