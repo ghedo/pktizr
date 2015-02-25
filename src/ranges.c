@@ -107,7 +107,7 @@ struct range *range_parse_ports(void *ta, char *spec) {
 
 		s++;
 
-		if (!(y = strtol(s, &e, 10), e != s) || (x < 0))
+		if (!(y = strtol(s, &e, 10), e != s) || (y < 0))
 			fail_printf("Invalid port range: %s", s);
 
 		range_list_add(ta, &list, x, y);
