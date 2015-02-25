@@ -6,28 +6,28 @@ local bit = require("bit")
 local ntp_query = '\x17\x00\x03\x2a\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 
 -- template packets
-local ip4 = hype.IP({id=1, src=hype.local_addr})
-local udp = hype.UDP({sport=64434})
-local raw = hype.Raw({payload=ntp_query})
+local pkt_ip4 = hype.IP({id=1, src=hype.local_addr})
+local pkt_udp = hype.UDP({sport=64434})
+local pkt_ntp = hype.Raw({payload=ntp_query})
 
 function loop(addr, port)
-	ip4.dst = addr
+	pkt_ip4.dst = addr
 
-	udp.dport = port
+	pkt_udp.dport = port
 
-	return ip4, udp, raw
+	return pkt_ip4, pkt_udp, pkt_ntp
 end
 
 function recv(pkts)
-	local ip4 = pkts[1]
-	local udp = pkts[2]
-	local ntp = pkts[3]
+	local pkt_ip4 = pkts[1]
+	local pkt_udp = pkts[2]
+	local pkt_ntp = pkts[3]
 
-	if #pkts < 3 or udp._type ~= 'udp' or ntp._type ~= 'raw' then
+	if #pkts < 3 or pkt_udp._type ~= 'udp' or pkt_ntp._type ~= 'raw' then
 		return
 	end
 
-	local vers, impl, code = hype.string.unpack('>BBB', ntp.payload)
+	local vers, impl, code = hype.string.unpack('>BBB', pkt_ntp.payload)
 
 	-- response bit set
 	if bit.rshift(vers, 7) ~= 1 then
@@ -45,6 +45,6 @@ function recv(pkts)
 	end
 
 	local fmt = "Received NTP reply from %s.%u: impl=%u, code=%u"
-	hype.print(fmt, ip4.src, udp.sport, impl, code)
+	hype.print(fmt, pkt_ip4.src, pkt_udp.sport, impl, code)
 	return true
 end

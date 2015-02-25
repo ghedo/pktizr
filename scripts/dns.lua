@@ -2,44 +2,50 @@
 -- for matching replies.
 
 -- template packets
-local ip4 = hype.IP({id=1, src=hype.local_addr})
-local udp = hype.UDP({sport=64434})
-local raw = hype.Raw({})
+local pkt_ip4 = hype.IP({id=1, src=hype.local_addr})
+local pkt_udp = hype.UDP({sport=64434})
+local pkt_dns = hype.Raw({})
 
 -- A? example.com. (without initial transaction ID)
 local dns_query = '\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x07\x65\x78\x61\x6d\x70\x6c\x65\x03\x63\x6f\x6d\x00\x00\x01\x00\x01'
 local dns_length = string.len(dns_query)
 
 function loop(addr, port)
-	ip4.dst = addr
+	pkt_ip4.dst = addr
 
-	udp.dport = port
+	pkt_udp.dport = port
 
 	local seq = hype.cookie16(hype.local_addr, addr, 64434, port)
-	raw.payload = hype.string.pack('>Hc' .. dns_length, seq, dns_query)
+	pkt_dns.payload = hype.string.pack('>Hc' .. dns_length, seq, dns_query)
 
-	return ip4, udp, raw
+	return pkt_ip4, pkt_udp, pkt_dns
 end
 
 function recv(pkts)
-	local ip4 = pkts[1]
-	local udp = pkts[2]
-	local dns = pkts[3]
+	local pkt_ip4 = pkts[1]
+	local pkt_udp = pkts[2]
+	local pkt_dns = pkts[3]
 
-	if #pkts < 3 or udp._type ~= 'udp' or dns._type ~= 'raw' then
+	if #pkts < 3 or pkt_udp._type ~= 'udp' or pkt_dns._type ~= 'raw' then
 		return
 	end
 
-	local seq = hype.cookie16(ip4.dst, ip4.src, udp.dport, udp.sport)
+	local src = pkt_ip4.src
+	local dst = pkt_ip4.dst
 
-	local id = hype.string.unpack('>H', dns.payload)
+	local sport = pkt_udp.sport
+	local dport = pkt_udp.dport
 
-	if seq ~= id then
+	local pkt_id = hype.cookie16(dst, src, dport, sport)
+
+	local dns_id = hype.string.unpack('>H', pkt_dns.payload)
+
+	if pkt_id ~= dns_id then
 		return
 	end
 
 	-- TODO: check if recursive queries are allowed
 
-	hype.print("Received DNS reply from %s.%u", ip4.src, udp.sport)
+	hype.print("Received DNS reply from %s.%u", src, sport)
 	return true
 end
