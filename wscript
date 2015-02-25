@@ -5,7 +5,7 @@ import re
 from waflib import Utils
 
 APPNAME = 'hype'
-VERSION = '0.1'
+VERSION = '0.0'
 
 _INSTALL_DIRS_LIST = [
 	('bindir',  '${DESTDIR}${PREFIX}/bin',      'binary files'),
@@ -162,9 +162,10 @@ def build(bld):
 	bld.env.append_value('INCLUDES', includes)
 
 	bld(
-		target       = 'hype',
+		name         = 'hype',
 		features     = 'c cprogram',
 		source       = sources,
+		target       = 'hype',
 		use          = bld.env.deps,
 		install_path = bld.env.BINDIR
 	)
@@ -183,6 +184,6 @@ def build(bld):
 
 	if bld.env['RONN']:
 		bld(
-			name    = 'manpages',
-			source  = bld.path.ant_glob('docs/*.md'),
+			name         = 'manpages',
+			source       = bld.path.ant_glob('docs/*.md'),
 		)
