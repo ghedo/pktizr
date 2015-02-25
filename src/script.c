@@ -91,23 +91,6 @@ static const luaL_Reg hype_fns[] = {
 	{ NULL,       NULL          }
 };
 
-static const luaL_Reg loadedlibs[] = {
-  {"_G", luaopen_base},
-  {LUA_LOADLIBNAME, luaopen_package},
-  /* {LUA_COLIBNAME, luaopen_coroutine}, */
-  {LUA_TABLIBNAME, luaopen_table},
-  {LUA_IOLIBNAME, luaopen_io},
-  {LUA_OSLIBNAME, luaopen_os},
-  {LUA_STRLIBNAME, luaopen_string},
-  {LUA_MATHLIBNAME, luaopen_math},
-  /* {LUA_UTF8LIBNAME, luaopen_utf8}, */
-  {LUA_DBLIBNAME, luaopen_debug},
-#if defined(LUA_COMPAT_BITLIB)
-  {LUA_BITLIBNAME, luaopen_bit32},
-#endif
-  {NULL, NULL}
-};
-
 void *script_load(struct hype_args *args) {
 	int rc;
 
@@ -116,14 +99,6 @@ void *script_load(struct hype_args *args) {
 		fail_printf("Error creating Lua state");
 
 	luaL_openlibs(L);
-
-	/* luaL_getsubtable(L, LUA_REGISTRYINDEX, "_LOADED"); */
-	/* lua_pop(L, 1); */
-
-	/* for (const luaL_Reg *lib = loadedlibs; lib->func; lib++) { */
-	/* 	luaL_requiref(L, lib->name, lib->func, 1); */
-	/* 	lua_pop(L, 1); */
-	/* } */
 
 	lua_newtable(L);
 
