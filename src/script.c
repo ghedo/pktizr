@@ -41,13 +41,13 @@
 
 #include <utlist.h>
 
+#include "c-api/compat-5.3.h"
+
 #include "hype.h"
 #include "netif.h"
 #include "pkt.h"
 #include "printf.h"
 #include "util.h"
-
-extern int luaL_register_pack(lua_State *L);
 
 static struct pkt *get_pkt(lua_State *L, struct hype_args *args);
 
@@ -91,6 +91,23 @@ static const luaL_Reg hype_fns[] = {
 	{ NULL,       NULL          }
 };
 
+static const luaL_Reg loadedlibs[] = {
+  {"_G", luaopen_base},
+  {LUA_LOADLIBNAME, luaopen_package},
+  /* {LUA_COLIBNAME, luaopen_coroutine}, */
+  {LUA_TABLIBNAME, luaopen_table},
+  {LUA_IOLIBNAME, luaopen_io},
+  {LUA_OSLIBNAME, luaopen_os},
+  {LUA_STRLIBNAME, luaopen_string},
+  {LUA_MATHLIBNAME, luaopen_math},
+  /* {LUA_UTF8LIBNAME, luaopen_utf8}, */
+  {LUA_DBLIBNAME, luaopen_debug},
+#if defined(LUA_COMPAT_BITLIB)
+  {LUA_BITLIBNAME, luaopen_bit32},
+#endif
+  {NULL, NULL}
+};
+
 void *script_load(struct hype_args *args) {
 	int rc;
 
@@ -100,14 +117,20 @@ void *script_load(struct hype_args *args) {
 
 	luaL_openlibs(L);
 
-	lua_newtable(L);
-#if LUA_VERSION_NUM >= 502
-	luaL_setfuncs(L, hype_fns, 0);
-#else
-	luaL_register(L, NULL, hype_fns);
-#endif
+	/* luaL_getsubtable(L, LUA_REGISTRYINDEX, "_LOADED"); */
+	/* lua_pop(L, 1); */
 
-	luaL_register_pack(L);
+	/* for (const luaL_Reg *lib = loadedlibs; lib->func; lib++) { */
+	/* 	luaL_requiref(L, lib->name, lib->func, 1); */
+	/* 	lua_pop(L, 1); */
+	/* } */
+
+	lua_newtable(L);
+
+	luaL_setfuncs(L, hype_fns, 0);
+
+	luaopen_compat53_string(L);
+	lua_setfield(L, -2, "string");
 
 	char local_addr_str[INET_ADDRSTRLEN];
 	uint32_t laddr = htonl(args->local_addr);
@@ -195,8 +218,7 @@ error:
 	return -1;
 }
 
-int script_recv(void *L, struct hype_args *args, struct pkt *pkt)
-{
+int script_recv(void *L, struct hype_args *args, struct pkt *pkt) {
 	int rc, n = 1;
 
 	struct pkt *cur;

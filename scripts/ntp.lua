@@ -27,7 +27,7 @@ function recv(pkts)
 		return
 	end
 
-	local vers, impl, code = hype.unpack('>BBB', ntp.payload)
+	local vers, impl, code = hype.string.unpack('>BBB', ntp.payload)
 
 	-- response bit set
 	if bit.rshift(vers, 7) ~= 1 then

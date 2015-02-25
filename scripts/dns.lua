@@ -16,7 +16,7 @@ function loop(addr, port)
 	udp.dport = port
 
 	local seq = hype.cookie16(hype.local_addr, addr, 64434, port)
-	raw.payload = hype.pack('>Hc' .. dns_length, seq, dns_query)
+	raw.payload = hype.string.pack('>Hc' .. dns_length, seq, dns_query)
 
 	return ip4, udp, raw
 end
@@ -32,7 +32,7 @@ function recv(pkts)
 
 	local seq = hype.cookie16(ip4.dst, ip4.src, udp.dport, udp.sport)
 
-	local id = hype.unpack('>H', dns.payload)
+	local id = hype.string.unpack('>H', dns.payload)
 
 	if seq ~= id then
 		return

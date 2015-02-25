@@ -13,7 +13,7 @@ function loop(addr, port)
 
 	icmp.seq = hype.cookie16(hype.local_addr, addr, 65535, 0)
 
-	raw.payload = hype.pack('=n', socket.gettime())
+	raw.payload = hype.string.pack('=n', socket.gettime())
 
 	return ip4, icmp, raw
 end
@@ -39,7 +39,7 @@ function recv(pkts)
 	end
 
 	local now   = socket.gettime()
-	local clock = hype.unpack('=n', raw.payload)
+	local clock = hype.string.unpack('=n', raw.payload)
 
 	hype.print("Host %s is up, time %f ms", ip4.src, (now - clock) * 1000)
 	return true

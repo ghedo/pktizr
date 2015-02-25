@@ -1,0 +1,3 @@
+[submodule "deps/lua-compat-5.3"]
+	path = deps/lua-compat-5.3
+	url = https://github.com/keplerproject/lua-compat-5.3.git

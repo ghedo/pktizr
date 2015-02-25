@@ -118,8 +118,7 @@ def configure(cfg):
 
 def build(bld):
 	includes = [
-		'deps/lua-compat-5.2',
-		'deps/lua-pack',
+		'deps/lua-compat-5.3',
 		'deps/siphash',
 		'deps/ta',
 		'deps/ut',
@@ -149,11 +148,11 @@ def build(bld):
 		'src/script.c',
 		'src/util.c',
 
-		# Lua 5.2 compat
-		'deps/lua-compat-5.2/compat-5.2.c',
-
-		# Lua pack lib
-		'deps/lua-pack/lpack.c',
+		# Lua 5.3 compat
+		'deps/lua-compat-5.3/c-api/compat-5.3.c',
+		'deps/lua-compat-5.3/lstrlib.c',
+		'deps/lua-compat-5.3/ltablib.c',
+		'deps/lua-compat-5.3/lutf8lib.c',
 
 		# siphash
 		'deps/siphash/siphash24.c',
