@@ -2,7 +2,9 @@
 # This file is released under the 2 clause BSD license, see COPYING
 
 import re
+
 from waflib import Utils
+from waflib.Build import BuildContext
 
 APPNAME = 'hype'
 VERSION = '0.0'
@@ -92,6 +94,9 @@ def configure(cfg):
 	# ronn
 	cfg.find_program('ronn', mandatory=False)
 
+	# afl
+	cfg.find_program('afl-fuzz', mandatory=False)
+
 	if cfg.options.sanitize:
 		cflags = [ '-fsanitize=' + cfg.options.sanitize ]
 		lflags = [ '-fsanitize=' + cfg.options.sanitize ]
@@ -166,3 +171,41 @@ def build(bld):
 			name         = 'manpages',
 			source       = bld.path.ant_glob('docs/*.md'),
 		)
+
+def fuzz(fzz):
+	if not fzz.env.AFL_FUZZ:
+		fzz.fatal("AFL not detected")
+
+	sources = [
+		# sources
+		'src/pkt.c',
+		'src/pkt_arp.c',
+		'src/pkt_chksum.c',
+		'src/pkt_cookie.c',
+		'src/pkt_eth.c',
+		'src/pkt_fuzz.c',
+		'src/pkt_icmp.c',
+		'src/pkt_ip4.c',
+		'src/pkt_raw.c',
+		'src/pkt_tcp.c',
+		'src/pkt_udp.c',
+		'src/printf.c',
+		'src/util.c',
+
+		# siphash
+		'deps/siphash/siphash24.c',
+	]
+
+	fzz.env.append_value('INCLUDES', ['deps', 'src'])
+
+	fzz(
+		name         = 'pkt_fuzz',
+		features     = 'c cprogram',
+		source       = sources,
+		target       = 'pkt_fuzz',
+		use          = fzz.env.deps,
+	)
+
+class FuzzContext(BuildContext):
+	cmd = 'fuzz'
+	fun = 'fuzz'
