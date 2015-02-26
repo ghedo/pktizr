@@ -63,6 +63,9 @@ int pkt_unpack_ip4(struct pkt *p, uint8_t *buf, size_t len) {
 
 	memcpy(&p->p.ip4, buf, sizeof(p->p.ip4));
 
+	if (p->p.ip4.version != 4)
+		return -1;
+
 	p->p.ip4.version  = p->p.ip4.version;
 	p->p.ip4.ihl      = p->p.ip4.ihl;
 	p->p.ip4.tos      = p->p.ip4.tos;
