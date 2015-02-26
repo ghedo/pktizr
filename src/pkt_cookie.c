@@ -30,7 +30,7 @@
 
 #include <stdint.h>
 
-#include <siphash24.h>
+#include "siphash/siphash24.h"
 
 uint64_t pkt_cookie(uint32_t saddr, uint32_t daddr,
                     uint16_t sport, uint16_t dport,

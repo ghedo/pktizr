@@ -34,7 +34,7 @@
 
 #include <arpa/inet.h>
 
-#include <utlist.h>
+#include "ut/utlist.h"
 
 #include "netif.h"
 #include "pkt.h"

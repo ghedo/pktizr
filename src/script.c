@@ -39,9 +39,8 @@
 #include <lualib.h>
 #include <lauxlib.h>
 
-#include <utlist.h>
-
-#include "c-api/compat-5.3.h"
+#include "lua-compat-5.3/c-api/compat-5.3.h"
+#include "ut/utlist.h"
 
 #include "hype.h"
 #include "netif.h"

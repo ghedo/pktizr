@@ -105,14 +105,6 @@ def configure(cfg):
 			cfg.env.LINKFLAGS += lflags
 
 def build(bld):
-	includes = [
-		'deps/lua-compat-5.3',
-		'deps/siphash',
-		'deps/ta',
-		'deps/ut',
-		'src',
-	]
-
 	sources = [
 		# sources
 		'src/bucket.c',
@@ -146,7 +138,7 @@ def build(bld):
 		'deps/siphash/siphash24.c',
 	]
 
-	bld.env.append_value('INCLUDES', includes)
+	bld.env.append_value('INCLUDES', ['deps', 'src'])
 
 	bld(
 		name         = 'hype',
