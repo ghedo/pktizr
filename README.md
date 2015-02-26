@@ -27,14 +27,14 @@ run a script you need to specify a list of target hosts (e.g. `192.168.1.0/24`),
 a port range (e.g. `0-65535`) and obviously the script you want to run:
 
 ```bash
-$ sudo hype 192.168.1.0/24 -p 0 -S scripts/ping.lua
+$ sudo hype 192.168.1.0/24 -p 1 -S scripts/ping.lua
 ```
 
 This will run the `ping.lua` script against all the hosts on the 192.168.0/24
 network. The script simply sends out ICMP echo requests like the `ping(8)`
 utility does, and can be used to discover active hosts from a set of IP ranges.
 
-The port range (specified with the `-p` option) is `0`, since we only want to
+The port range (specified with the `-p` option) is `1`, since we only want to
 send a single packet per host.
 
 ```bash

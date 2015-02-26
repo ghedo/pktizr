@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
 	/* TODO: add --exclude option */
 
 	args->targets = range_parse_targets(args, argv[1]);
-	args->ports   = range_parse_ports(args, "0");
+	args->ports   = range_parse_ports(args, "1");
 	args->rate    = 100;
 	args->seed    = get_entropy();
 	args->wait    = 5;
