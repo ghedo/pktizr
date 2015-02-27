@@ -97,7 +97,8 @@ static void do_log(const char *pre, const char *fmt, va_list args) {
 	int rc;
 	static char format[LINE_MAX];
 
-	rc = snprintf(format, LINE_MAX, "\033[K%s%s\n", use_syslog ? "" : pre, fmt);
+	rc = snprintf(format, LINE_MAX, LINE_CLEAR "%s%s\n",
+	              use_syslog ? "" : pre, fmt);
 	if (rc < 0) fail_printf("EIO");
 
 	if (use_syslog == 1)

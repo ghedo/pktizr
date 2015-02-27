@@ -34,6 +34,11 @@
 #define COLOR_BGRED	"[1;41m"
 #define COLOR_OFF	"[0m"
 
+#define LINE_CLEAR	"[0K"
+
+#define CURSOR_HIDE	"[?25l"
+#define CURSOR_SHOW	"[?25h"
+
 int use_syslog;
 
 void ok_printf(const char *fmt, ...);

@@ -203,8 +203,6 @@ int main(int argc, char *argv[]) {
 
 	pthread_join(args->loop_thread, NULL);
 
-	time_sleep(args->wait * 1e6);
-
 	args->done = true;
 
 	pthread_join(args->recv_thread, NULL);
@@ -364,6 +362,8 @@ static void status_line(struct hype_args *args) {
 	uint64_t now_old  = time_now();
 	uint64_t sent_old = args->pkt_sent;
 
+	fprintf(stderr, CURSOR_HIDE);
+
 	while (1) {
 		uint64_t now   = time_now();
 		uint64_t sent  = args->pkt_sent;
@@ -373,7 +373,7 @@ static void status_line(struct hype_args *args) {
 		double percent = (double) probe * 100 / tot;
 
 		if (!args->quiet) {
-			fprintf(stderr, "\033[K");
+			fprintf(stderr, LINE_CLEAR);
 			fprintf(stderr, "Progress: %3.2f%% ", percent);
 			fprintf(stderr, "Rate: %3.2fkpps ", rate / 1000);
 			fprintf(stderr, "Sent: %zu ", sent);
@@ -389,6 +389,15 @@ static void status_line(struct hype_args *args) {
 
 		time_sleep(250000);
 	}
+
+	for (; args->wait > 0; args->wait--) {
+		fprintf(stderr, LINE_CLEAR);
+		fprintf(stderr, "Waiting for %zu seconds...", args->wait);
+		time_sleep(1e6);
+		fprintf(stderr, "\r");
+	}
+
+	fprintf(stderr, "\r" LINE_CLEAR CURSOR_SHOW);
 }
 
 static uint64_t get_entropy(void) {
