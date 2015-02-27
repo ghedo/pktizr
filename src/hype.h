@@ -69,5 +69,5 @@ struct hype_args {
 	uint8_t local_mac[6];
 	uint8_t gateway_mac[6];
 
-	bool done, quiet;
+	bool done, stop, quiet;
 };

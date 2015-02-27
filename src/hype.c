@@ -36,6 +36,7 @@
 #include <fcntl.h>
 
 #include <pthread.h>
+#include <signal.h>
 
 #include <arpa/inet.h>
 #include <net/if.h>
@@ -54,6 +55,8 @@
 #include "util.h"
 
 static const char *short_opts = "S:p:r:s:w:c:qh?";
+
+static bool stop = false;
 
 static struct option long_opts[] = {
 	{ "script",      required_argument, NULL, 'S' },
@@ -74,6 +77,7 @@ static void *recv_cb(void *p);
 static void *loop_cb(void *p);
 
 static void status_line(struct hype_args *args);
+static void setup_signals(void);
 
 static uint64_t get_entropy(void);
 
@@ -110,6 +114,7 @@ int main(int argc, char *argv[]) {
 	args->script  = NULL;
 	args->quiet   = false;
 	args->done    = false;
+	args->stop    = false;
 
 	while ((rc = getopt_long(argc, argv, short_opts, long_opts, &i)) !=-1) {
 		char *end;
@@ -198,6 +203,8 @@ int main(int argc, char *argv[]) {
 	START_THREAD(recv_mutex, recv_started, recv_thread, recv_cb, args);
 	START_THREAD(send_mutex, send_started, send_thread, send_cb, args);
 	START_THREAD(loop_mutex, loop_started, loop_thread, loop_cb, args);
+
+	setup_signals();
 
 	status_line(args);
 
@@ -336,7 +343,7 @@ static void *loop_cb(void *p) {
 	pthread_mutex_unlock(&args->loop_mutex);
 
 	/* TODO: randomize targets */
-	for (size_t i = 0; i < tot_cnt; i++) {
+	for (size_t i = 0; i < tot_cnt && !args->stop; i++) {
 		bucket_consume(&bucket);
 
 		uint32_t daddr = range_list_pick(args->targets,
@@ -357,10 +364,11 @@ static void *loop_cb(void *p) {
 }
 
 static void status_line(struct hype_args *args) {
-	/* TODO: handle ctrl+c */
 	uint64_t tot      = args->pkt_count;
 	uint64_t now_old  = time_now();
 	uint64_t sent_old = args->pkt_sent;
+
+	stop = false;
 
 	fprintf(stderr, CURSOR_HIDE);
 
@@ -387,17 +395,47 @@ static void status_line(struct hype_args *args) {
 		if (probe == tot)
 			break;
 
+		if (stop) {
+			args->stop = true;
+			break;
+		}
+
 		time_sleep(250000);
 	}
 
-	for (; args->wait > 0; args->wait--) {
+	args->stop = stop = false;
+
+	for (; args->wait > 0 && !stop; args->wait--) {
 		fprintf(stderr, LINE_CLEAR);
 		fprintf(stderr, "Waiting for %zu seconds...", args->wait);
+
 		time_sleep(1e6);
+
 		fprintf(stderr, "\r");
 	}
 
+	args->stop = true;
+
 	fprintf(stderr, "\r" LINE_CLEAR CURSOR_SHOW);
+}
+
+static void handle_term_sig(int sig) {
+	stop = true;
+}
+
+static void setup_signals(void) {
+	struct sigaction sa;
+
+	sa.sa_handler   = NULL;
+	sa.sa_flags     = SA_RESTART;
+	sa.sa_sigaction = NULL;
+
+	sigemptyset(&sa.sa_mask);
+
+	sa.sa_handler = handle_term_sig;
+	sigaction(SIGHUP, &sa, NULL);
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGTERM, &sa, NULL);
 }
 
 static uint64_t get_entropy(void) {
