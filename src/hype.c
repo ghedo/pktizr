@@ -251,26 +251,28 @@ static void *send_cb(void *p) {
 
 		bucket_consume(&bucket);
 
-		node = cds_wfcq_dequeue_blocking(&args->queue_head,
-		                                 &args->queue_tail);
-		if (!node) continue;
+		while (!args->done && (!args->rate || bucket.tokens >= 1.0)) {
+			node = cds_wfcq_dequeue_blocking(&args->queue_head,
+			                                 &args->queue_tail);
+			if (!node) break;
 
-		pkt = caa_container_of(node, struct pkt, queue);
+			pkt = caa_container_of(node, struct pkt, queue);
 
-		int pkt_len = pkt_pack(buf, len, pkt);
-		if (pkt_len < 0)
-			goto done;
+			int pkt_len = pkt_pack(buf, len, pkt);
+			if (pkt_len < 0)
+				goto done;
 
-		args->netif->inject(args->netif, buf, pkt_len);
-		args->pkt_sent++;
+			args->netif->inject(args->netif, buf, pkt_len);
+			args->pkt_sent++;
 
-		bucket.tokens--;
+			bucket.tokens--;
 
-		if (pkt->probe)
-			args->pkt_probe++;
+			if (pkt->probe)
+				args->pkt_probe++;
 
-done:
-		pkt_free(pkt);
+		done:
+			pkt_free(pkt);
+		}
 	}
 
 	return NULL;
