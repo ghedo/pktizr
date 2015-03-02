@@ -110,37 +110,61 @@ def configure(cfg):
 			cfg.env.LINKFLAGS += lflags
 
 def build(bld):
+	def filter_sources(ctx, sources):
+		def __source_file__(source):
+			if isinstance(source, tuple):
+				return source[0]
+			else:
+				return source
+
+		def __check_filter__(dependency):
+			if dependency.find('!') == 0:
+				dependency = dependency.lstrip('!')
+				return dependency not in ctx.env.deps
+			else:
+				return dependency in ctx.env.deps
+
+		def __unpack_and_check_filter__(source):
+			try:
+				_, dependency = source
+				return __check_filter__(dependency)
+			except ValueError:
+				return True
+
+		return [__source_file__(source) for source in sources \
+		         if __unpack_and_check_filter__(source)]
+
 	sources = [
 		# sources
-		'src/bucket.c',
-		'src/hype.c',
-		'src/netif_pcap.c',
-		'src/pkt.c',
-		'src/pkt_arp.c',
-		'src/pkt_chksum.c',
-		'src/pkt_cookie.c',
-		'src/pkt_eth.c',
-		'src/pkt_icmp.c',
-		'src/pkt_ip4.c',
-		'src/pkt_raw.c',
-		'src/pkt_tcp.c',
-		'src/pkt_udp.c',
-		'src/printf.c',
-		'src/ranges.c',
-		'src/resolv.c',
-		'src/resolv_linux.c',
-		'src/routes_linux.c',
-		'src/script.c',
-		'src/util.c',
+		( 'src/bucket.c'                           ),
+		( 'src/hype.c'                             ),
+		( 'src/netif_pcap.c',           'pcap'     ),
+		( 'src/pkt.c'                              ),
+		( 'src/pkt_arp.c'                          ),
+		( 'src/pkt_chksum.c'                       ),
+		( 'src/pkt_cookie.c'                       ),
+		( 'src/pkt_eth.c'                          ),
+		( 'src/pkt_icmp.c'                         ),
+		( 'src/pkt_ip4.c'                          ),
+		( 'src/pkt_raw.c'                          ),
+		( 'src/pkt_tcp.c'                          ),
+		( 'src/pkt_udp.c'                          ),
+		( 'src/printf.c'                           ),
+		( 'src/ranges.c'                           ),
+		( 'src/resolv.c'                           ),
+		( 'src/resolv_linux.c',         'os-linux' ),
+		( 'src/routes_linux.c',         'os-linux' ),
+		( 'src/script.c'                           ),
+		( 'src/util.c'                             ),
 
 		# Lua 5.3 compat
-		'deps/lua-compat-5.3/c-api/compat-5.3.c',
-		'deps/lua-compat-5.3/lstrlib.c',
-		'deps/lua-compat-5.3/ltablib.c',
-		'deps/lua-compat-5.3/lutf8lib.c',
+		( 'deps/lua-compat-5.3/c-api/compat-5.3.c' ),
+		( 'deps/lua-compat-5.3/lstrlib.c'          ),
+		( 'deps/lua-compat-5.3/ltablib.c'          ),
+		( 'deps/lua-compat-5.3/lutf8lib.c'         ),
 
 		# siphash
-		'deps/siphash/siphash24.c',
+		( 'deps/siphash/siphash24.c'               ),
 	]
 
 	bld.env.append_value('INCLUDES', ['deps', 'src'])
@@ -148,7 +172,7 @@ def build(bld):
 	bld(
 		name         = 'hype',
 		features     = 'c cprogram',
-		source       = sources,
+		source       = filter_sources(bld, sources),
 		target       = 'hype',
 		use          = bld.env.deps,
 		install_path = bld.env.BINDIR
