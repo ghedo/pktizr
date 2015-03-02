@@ -148,7 +148,7 @@ void script_close(void *L) {
 }
 
 int script_loop(void *L, struct hype_args *args,
-                    uint32_t daddr, uint16_t dport) {
+                uint32_t daddr, uint16_t dport) {
 	int rc;
 
 	char dst_addr[INET_ADDRSTRLEN];
