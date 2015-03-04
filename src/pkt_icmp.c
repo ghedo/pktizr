@@ -64,5 +64,11 @@ int pkt_unpack_icmp(struct pkt *p, uint8_t *buf, size_t len) {
 	p->type   = TYPE_ICMP;
 	p->length = 8;
 
+	if ((p->p.icmp.type == 3) ||
+	    (p->p.icmp.type == 4) ||
+	    (p->p.icmp.type == 5) ||
+	    (p->p.icmp.type == 11))
+		return TYPE_IP4;
+
 	return TYPE_RAW;
 }
