@@ -196,9 +196,9 @@ def build(bld):
 			source       = bld.path.ant_glob('docs/*.md'),
 		)
 
-def fuzz(fzz):
-	if not fzz.env.AFL_FUZZ:
-		fzz.fatal("AFL not detected")
+def build_fuzz(bld):
+	if not bld.env.AFL_FUZZ:
+		bld.fatal("AFL not detected")
 
 	sources = [
 		# sources
@@ -220,16 +220,16 @@ def fuzz(fzz):
 		'deps/siphash/siphash24.c',
 	]
 
-	fzz.env.append_value('INCLUDES', ['deps', 'src'])
+	bld.env.append_value('INCLUDES', ['deps', 'src'])
 
-	fzz(
+	bld(
 		name         = 'pkt_fuzz',
 		features     = 'c cprogram',
 		source       = sources,
 		target       = 'pkt_fuzz',
-		use          = fzz.env.deps,
+		use          = bld.env.deps,
 	)
 
 class FuzzContext(BuildContext):
-	cmd = 'fuzz'
-	fun = 'fuzz'
+	cmd = 'build_fuzz'
+	fun = 'build_fuzz'
