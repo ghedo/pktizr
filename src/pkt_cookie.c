@@ -46,7 +46,7 @@ uint64_t pkt_cookie(uint32_t saddr, uint32_t daddr,
 	buf[0] = daddr;
 	buf[1] = dport;
 	buf[2] = saddr;
-	buf[3] = dport;
+	buf[3] = sport;
 
 	siphash((uint8_t *) &cookie,
 	        (uint8_t *) buf, sizeof(buf),
