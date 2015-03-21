@@ -14,7 +14,7 @@
 
 -- template packets
 local pkt_ip4 = hype.IP({id=1, src=hype.local_addr})
-local pkt_tcp = hype.TCP({sport=64431, syn=true})
+local pkt_tcp = hype.TCP({sport=64434, syn=true})
 local pkt_raw = hype.Raw({})
 
 function loop(addr, port)
