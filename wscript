@@ -84,7 +84,8 @@ def configure(cfg):
 	my_check_lua(cfg, ['luajit', 'lua5.2', 'lua5.1'])
 
 	# urcu
-	my_check_cc(cfg, 'urcu', lib='urcu', mandatory=True)
+	my_check_cc(cfg, 'urcu', header_name='urcu/compiler.h', mandatory=True)
+	my_check_cc(cfg, 'urcu', header_name='urcu/uatomic.h', mandatory=True)
 
 	# pcap
 	my_check_cc(cfg, 'pcap', lib='pcap',

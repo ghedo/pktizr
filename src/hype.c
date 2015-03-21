@@ -41,8 +41,6 @@
 #include <arpa/inet.h>
 #include <net/if.h>
 
-#include <urcu.h>
-
 #include "bucket.h"
 #include "netif.h"
 #include "ranges.h"
@@ -197,8 +195,6 @@ int main(int argc, char *argv[]) {
 	if (rc < 0)
 		fail_printf("Error resolving local MAC");
 
-	rcu_init();
-
 	queue_init(&args->queue_head, &args->queue_tail);
 
 	START_THREAD(recv_mutex, recv_started, recv_thread, recv_cb, args);
@@ -239,8 +235,6 @@ static void *send_cb(void *p) {
 
 	if (pthread_setname_np(pthread_self(), "hype: send"))
 		fail_printf("Error setting thread name");
-
-	rcu_register_thread();
 
 	pthread_mutex_lock(&args->send_mutex);
 	pthread_cond_signal(&args->send_started);
