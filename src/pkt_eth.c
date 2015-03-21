@@ -29,10 +29,12 @@
  */
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <string.h>
 
 #include <arpa/inet.h>
 
+#include "queue.h"
 #include "pkt.h"
 
 void pkt_build_eth(struct pkt *p, uint8_t *src, uint8_t *dst, uint16_t type) {

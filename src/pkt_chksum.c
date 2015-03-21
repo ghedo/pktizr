@@ -29,10 +29,12 @@
  */
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <string.h>
 
 #include <arpa/inet.h>
 
+#include "queue.h"
 #include "pkt.h"
 
 static uint32_t sum(uint8_t *buf, size_t len) {

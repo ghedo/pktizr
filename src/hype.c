@@ -44,15 +44,16 @@
 #include <urcu.h>
 
 #include "bucket.h"
-#include "hype.h"
 #include "netif.h"
 #include "ranges.h"
 #include "resolv.h"
 #include "routes.h"
+#include "queue.h"
 #include "pkt.h"
-#include "script.h"
 #include "printf.h"
 #include "util.h"
+#include "hype.h"
+#include "script.h"
 
 static const char *short_opts = "S:p:r:s:w:c:qh?";
 
@@ -198,7 +199,7 @@ int main(int argc, char *argv[]) {
 
 	rcu_init();
 
-	cds_wfcq_init(&args->queue_head, &args->queue_tail);
+	queue_init(&args->queue_head, &args->queue_tail);
 
 	START_THREAD(recv_mutex, recv_started, recv_thread, recv_cb, args);
 	START_THREAD(send_mutex, send_started, send_thread, send_cb, args);
@@ -247,13 +248,13 @@ static void *send_cb(void *p) {
 
 	while (!args->done) {
 		struct pkt *pkt;
-		struct cds_wfcq_node *node;
+		struct queue_node *node;
 
 		bucket_consume(&bucket);
 
 		while (!args->done && (!args->rate || bucket.tokens >= 1.0)) {
-			node = cds_wfcq_dequeue_blocking(&args->queue_head,
-			                                 &args->queue_tail);
+			node = queue_dequeue(&args->queue_head,
+			                     &args->queue_tail);
 			if (!node) break;
 
 			pkt = caa_container_of(node, struct pkt, queue);

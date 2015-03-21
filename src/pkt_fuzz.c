@@ -29,11 +29,13 @@
  */
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
 
 #include "ut/utlist.h"
 
+#include "queue.h"
 #include "pkt.h"
 
 int main(int argc, char *argv[]) {

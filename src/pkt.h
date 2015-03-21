@@ -28,8 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <urcu/wfcqueue.h>
-
 enum pkt_type {
 	TYPE_NONE,
 	TYPE_ETH,
@@ -196,7 +194,7 @@ struct pkt {
 
 	struct pkt *prev, *next;
 
-	struct cds_wfcq_node queue;
+	struct queue_node queue;
 };
 
 struct pkt *pkt_new(void *ta, enum pkt_type type);

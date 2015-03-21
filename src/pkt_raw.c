@@ -30,10 +30,12 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <string.h>
 
 #include <arpa/inet.h>
 
+#include "queue.h"
 #include "pkt.h"
 
 void pkt_pack_raw(struct pkt *p, uint8_t *buf, size_t len) {

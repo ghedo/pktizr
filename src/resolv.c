@@ -29,6 +29,7 @@
  */
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <string.h>
 #include <netdb.h>
 
@@ -37,6 +38,7 @@
 #include "ut/utlist.h"
 
 #include "netif.h"
+#include "queue.h"
 #include "pkt.h"
 #include "printf.h"
 #include "util.h"

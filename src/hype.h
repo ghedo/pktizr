@@ -28,8 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <urcu/wfcqueue.h>
-
 struct hype_args {
 	struct range *targets;
 	struct range *ports;
@@ -60,8 +58,8 @@ struct hype_args {
 	pthread_mutex_t loop_mutex;
 	pthread_cond_t  loop_started;
 
-	struct cds_wfcq_head queue_head;
-	struct cds_wfcq_tail queue_tail;
+	struct queue_head queue_head;
+	struct queue_tail queue_tail;
 
 	uint32_t local_addr;
 	uint32_t gateway_addr;

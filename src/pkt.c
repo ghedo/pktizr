@@ -29,12 +29,14 @@
  */
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <string.h>
 
 #include <arpa/inet.h>
 
 #include "ut/utlist.h"
 
+#include "queue.h"
 #include "pkt.h"
 #include "printf.h"
 #include "util.h"
@@ -82,7 +84,7 @@ struct pkt *pkt_new(void *ta, enum pkt_type type) {
 		fail_printf("Invalid packet type: %d", type);
 	}
 
-	cds_wfcq_node_init(&p->queue);
+	queue_node_init(&p->queue);
 
 	return p;
 }

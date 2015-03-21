@@ -42,11 +42,12 @@
 #include "lua-compat-5.3/c-api/compat-5.3.h"
 #include "ut/utlist.h"
 
-#include "hype.h"
 #include "netif.h"
+#include "queue.h"
 #include "pkt.h"
 #include "printf.h"
 #include "util.h"
+#include "hype.h"
 
 static struct pkt *get_pkt(lua_State *L, struct hype_args *args);
 
@@ -183,7 +184,7 @@ int script_loop(void *L, struct hype_args *args,
 
 	assert(lua_gettop(L) == 0);
 
-	cds_wfcq_enqueue(&args->queue_head, &args->queue_tail, &pkt->queue);
+	queue_enqueue(&args->queue_head, &args->queue_tail, &pkt->queue);
 
 	return 0;
 
@@ -423,7 +424,7 @@ static int hype_send(lua_State *L) {
 	struct pkt *pkt = get_pkt(L, args);
 	assert(lua_gettop(L) == 0);
 
-	cds_wfcq_enqueue(&args->queue_head, &args->queue_tail, &pkt->queue);
+	queue_enqueue(&args->queue_head, &args->queue_tail, &pkt->queue);
 
 	lua_pushboolean(L, 1);
 

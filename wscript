@@ -84,8 +84,7 @@ def configure(cfg):
 	my_check_lua(cfg, ['luajit', 'lua5.2', 'lua5.1'])
 
 	# urcu
-	my_check_cc(cfg, 'urcu', lib=['urcu', 'urcu-common'],
-	            header_name='urcu/wfcqueue.h', mandatory=True)
+	my_check_cc(cfg, 'urcu', lib='urcu', mandatory=True)
 
 	# pcap
 	my_check_cc(cfg, 'pcap', lib='pcap',

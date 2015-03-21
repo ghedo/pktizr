@@ -30,10 +30,12 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <string.h>
 
 #include <arpa/inet.h>
 
+#include "queue.h"
 #include "pkt.h"
 
 void pkt_build_arp(struct pkt *p, uint16_t hwtype, uint16_t ptype, uint16_t op,
