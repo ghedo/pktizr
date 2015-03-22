@@ -89,7 +89,11 @@ def configure(cfg):
 
 	# pcap
 	my_check_cc(cfg, 'pcap', lib='pcap',
-	            header_name='pcap.h', mandatory=True)
+	            header_name='pcap.h', mandatory=False)
+
+	# AF_PACKET
+	my_check_cc(cfg, 'af_pkt',
+	            header_name='linux/if_packet.h', mandatory=False)
 
 	# sphinx
 	cfg.find_program('sphinx-build', mandatory=False)
@@ -138,7 +142,9 @@ def build(bld):
 		# sources
 		( 'src/bucket.c'                           ),
 		( 'src/hype.c'                             ),
+		( 'src/netdev.c',                          ),
 		( 'src/netdev_pcap.c',          'pcap'     ),
+		( 'src/netdev_sock.c',          'af_pkt'   ),
 		( 'src/pkt.c'                              ),
 		( 'src/pkt_arp.c'                          ),
 		( 'src/pkt_chksum.c'                       ),

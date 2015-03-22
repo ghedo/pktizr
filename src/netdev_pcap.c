@@ -30,11 +30,22 @@
 
 #include <assert.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 #include <pcap/pcap.h>
 
 #include "netdev.h"
 #include "printf.h"
+#include "util.h"
+
+static uint8_t *pcap_buf     = NULL;
+static size_t   pcap_buf_len = 0;
+
+static uint8_t *netdev_get_buf_pcap(struct netdev *n, size_t *len) {
+	*len = pcap_buf_len;
+	return pcap_buf;
+}
 
 static void netdev_inject_pcap(struct netdev *n, uint8_t *buf, size_t len) {
 	int rc = pcap_sendpacket(n->p, buf, len);
@@ -67,14 +78,25 @@ static const uint8_t *netdev_capture_pcap(struct netdev *n, int *len) {
 	return NULL;
 }
 
+static void netdev_release_pcap(struct netdev *n) {
+}
+
 static void netdev_close_pcap(struct netdev *n) {
 	pcap_close(n->p);
+
+	freep(&pcap_buf);
+	pcap_buf_len = 0;
 }
 
 static struct netdev netdev_pcap = {
 	.p       = NULL,
+
+	.get_buf = netdev_get_buf_pcap,
 	.inject  = netdev_inject_pcap,
+
 	.capture = netdev_capture_pcap,
+	.release = netdev_release_pcap,
+
 	.close   = netdev_close_pcap,
 };
 
@@ -84,6 +106,9 @@ struct netdev *netdev_open_pcap(const char *dev_name) {
 	pcap_t *pcap = pcap_open_live(dev_name, 262144, 0, 10, err);
 	if (pcap == NULL)
 		fail_printf("Error opening pcap: %s", err);
+
+	pcap_buf_len = 65535;
+	pcap_buf     = malloc(pcap_buf_len);
 
 	netdev_pcap.p = pcap;
 

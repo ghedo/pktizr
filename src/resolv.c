@@ -67,8 +67,10 @@ int resolv_name_to_addr(const char *name, uint32_t *addr) {
 int resolv_addr_to_mac(struct netdev *netdev,
                        uint8_t *shost, uint32_t saddr,
                        uint8_t *dhost, uint32_t daddr) {
+	uint8_t *buf;
+	size_t  blen;
+
 	struct pkt *pkt = NULL;
-	uint8_t buf[ETH_PKTLEN + ARP_PKTLEN];
 
 	uint16_t tries = 5;
 	uint64_t start, timeout = 1000000;
@@ -88,7 +90,9 @@ int resolv_addr_to_mac(struct netdev *netdev,
 
 	pkt_build_eth(eth, shost, (uint8_t *) "\xff\xff\xff\xff\xff\xff", 0);
 
-	int len = pkt_pack(buf, sizeof(buf), pkt);
+	buf = netdev->get_buf(netdev, &blen);
+
+	int len = pkt_pack(buf, blen, pkt);
 	pkt_free(arp);
 
 	if (len < 0)
@@ -115,22 +119,27 @@ again:
 
 		n = pkt_unpack(NULL, (uint8_t *) rsp, rsp_len, &rsp_pkt);
 		if (n < 2)
-			continue;
+			goto done;
 
 		if (rsp_pkt->next && rsp_pkt->next->type == TYPE_ARP) {
 			struct pkt *arp_pkt = rsp_pkt->next;
 
 			if (memcmp(&daddr, arp_pkt->p.arp.psrc, 4) != 0)
-				continue;
+				goto done;
 
 			if (memcmp(&saddr, arp_pkt->p.arp.pdst, 4) != 0)
-				continue;
+				goto done;
 
 			memcpy(dhost, arp_pkt->p.arp.hwsrc, 6);
 
 			pkt_free(rsp_pkt);
+
+			netdev->release(netdev);
 			break;
 		}
+
+done:
+		netdev->release(netdev);
 	}
 
 	return 0;

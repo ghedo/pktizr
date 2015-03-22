@@ -28,17 +28,24 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-struct netdev {
-	int fd;
-	void *p;
+#include <stdint.h>
+#include <stdlib.h>
 
-	uint8_t *(*get_buf)(struct netdev *, size_t *);
-	void (*inject)(struct netdev *, uint8_t *, size_t);
+#include "netdev.h"
+#include "printf.h"
 
-	const uint8_t *(*capture)(struct netdev *, int *);
-	void (*release)(struct netdev *);
+struct netdev *netdev_open_sock(const char *dev_name);
+struct netdev *netdev_open_pcap(const char *dev_name);
 
-	void (*close)(struct netdev *);
-};
+struct netdev *netdev_open(const char *dev_name) {
+#ifdef HAVE_PCAP_H
+	return netdev_open_pcap(dev_name);
+#endif
 
-struct netdev *netdev_open(const char *dev_name);
+#ifdef HAVE_LINUX_IF_PACKET_H
+	return netdev_open_sock(dev_name);
+#endif
+
+	fail_printf("No netdev implementation supported");
+	return NULL;
+}

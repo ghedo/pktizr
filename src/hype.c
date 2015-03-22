@@ -185,7 +185,7 @@ int main(int argc, char *argv[]) {
 	if (rc < 0)
 		fail_printf("Error resolving local IP");
 
-	args->netdev = netdev_open_pcap(route.if_name);
+	args->netdev = netdev_open(route.if_name);
 	if (!args->netdev)
 		fail_printf("Error opening netdev");
 
@@ -224,8 +224,11 @@ int main(int argc, char *argv[]) {
 static void *send_cb(void *p) {
 	struct hype_args *args = p;
 
-	uint8_t  buf[65535];
-	size_t   len = sizeof(buf);
+	uint8_t *buf;
+	size_t   len;
+
+	struct pkt *pkt;
+	struct queue_node *node;
 
 	struct bucket bucket;
 	bucket_init(&bucket, args->rate);
@@ -241,9 +244,6 @@ static void *send_cb(void *p) {
 	pthread_mutex_unlock(&args->send_mutex);
 
 	while (!args->done) {
-		struct pkt *pkt;
-		struct queue_node *node;
-
 		bucket_consume(&bucket);
 
 		while (!args->done && (!args->rate || bucket.tokens >= 1.0)) {
@@ -252,6 +252,8 @@ static void *send_cb(void *p) {
 			if (!node) break;
 
 			pkt = caa_container_of(node, struct pkt, queue);
+
+			buf = args->netdev->get_buf(args->netdev, &len);
 
 			int pkt_len = pkt_pack(buf, len, pkt);
 			if (pkt_len < 0)
@@ -297,7 +299,7 @@ static void *recv_cb(void *p) {
 
 		rc = pkt_unpack(NULL, (uint8_t *) buf, len, &pkt);
 		if (!rc)
-			continue;
+			goto release;
 
 		rc = script_recv(L, args, pkt);
 		if (rc < 0)
@@ -307,6 +309,9 @@ static void *recv_cb(void *p) {
 
 done:
 		pkt_free(pkt);
+
+release:
+		args->netdev->release(args->netdev);
 	}
 
 	script_close(L);

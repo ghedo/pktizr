@@ -61,7 +61,6 @@ Dependencies
 ------------
 
 * `liblua5.1/5.2/jit`
-* `libpcap`
 * `liburcu`
 
 Building
