@@ -73,6 +73,7 @@ static int hype_ICMP(lua_State *L);
 static int hype_UDP(lua_State *L);
 static int hype_TCP(lua_State *L);
 static int hype_Raw(lua_State *L);
+static int hype_get_time(lua_State *L);
 static int hype_cookie16(lua_State *L);
 static int hype_cookie32(lua_State *L);
 static int hype_print(lua_State *L);
@@ -86,6 +87,7 @@ static const luaL_Reg hype_fns[] = {
 	{ "UDP",      hype_UDP      },
 	{ "TCP",      hype_TCP      },
 	{ "Raw",      hype_Raw      },
+	{ "get_time", hype_get_time },
 	{ "cookie16", hype_cookie16 },
 	{ "cookie32", hype_cookie32 },
 	{ "print",    hype_print    },
@@ -356,6 +358,13 @@ static int hype_Raw(lua_State *L) {
 
 	get_raw(L, &raw);
 	set_raw(L, &raw);
+
+	return 1;
+}
+
+static int hype_get_time(lua_State *L) {
+	double now = (double) time_now() / 1e6;
+	lua_pushnumber(L, now);
 
 	return 1;
 }

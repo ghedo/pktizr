@@ -2,7 +2,6 @@
 -- like the ping(8) utility.
 
 local bin = require("hype.bin")
-local socket = require("socket")
 
 -- template packets
 local pkt_ip4  = hype.IP({id=1, src=hype.local_addr})
@@ -14,7 +13,7 @@ function loop(addr, port)
 
 	pkt_icmp.seq = hype.cookie16(hype.local_addr, addr, 65535, 0)
 
-	pkt_raw.payload = bin.pack('=n', socket.gettime())
+	pkt_raw.payload = bin.pack('=n', hype.get_time())
 
 	return pkt_ip4, pkt_icmp, pkt_raw
 end
@@ -39,7 +38,7 @@ function recv(pkts)
 		return
 	end
 
-	local now   = socket.gettime()
+	local now   = hype.get_time()
 	local clock = bin.unpack('=n', pkt_raw.payload)
 
 	hype.print("Host %s is up, time %f ms", pkt_ip4.src, (now - clock) * 1000)
