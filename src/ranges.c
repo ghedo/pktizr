@@ -37,7 +37,7 @@
 #include "ut/utlist.h"
 
 #include "ranges.h"
-#include "netif.h"
+#include "netdev.h"
 #include "resolv.h"
 #include "printf.h"
 #include "util.h"

@@ -34,6 +34,6 @@ int resolve_ifname_to_ip(char *ifname, uint32_t *ip);
 
 int resolv_name_to_addr(const char *name, uint32_t *addr);
 
-int resolv_addr_to_mac(struct netif *netif,
+int resolv_addr_to_mac(struct netdev *netdev,
                        uint8_t *shost, uint32_t saddr,
                        uint8_t *dhost, uint32_t daddr);

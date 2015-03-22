@@ -37,7 +37,7 @@
 
 #include "ut/utlist.h"
 
-#include "netif.h"
+#include "netdev.h"
 #include "queue.h"
 #include "pkt.h"
 #include "printf.h"
@@ -64,7 +64,7 @@ int resolv_name_to_addr(const char *name, uint32_t *addr) {
 	return 0;
 }
 
-int resolv_addr_to_mac(struct netif *netif,
+int resolv_addr_to_mac(struct netdev *netdev,
                        uint8_t *shost, uint32_t saddr,
                        uint8_t *dhost, uint32_t daddr) {
 	struct pkt *pkt = NULL;
@@ -98,7 +98,7 @@ again:
 	if (tries-- <= 0)
 		return -1;
 
-	netif->inject(netif, buf, len);
+	netdev->inject(netdev, buf, len);
 
 	start = time_now();
 
@@ -106,7 +106,7 @@ again:
 		int rsp_len, n;
 		struct pkt *rsp_pkt = NULL;
 
-		const uint8_t *rsp = netif->capture(netif, &rsp_len);
+		const uint8_t *rsp = netdev->capture(netdev, &rsp_len);
 		if ((time_now() - start) > timeout)
 			goto again;
 

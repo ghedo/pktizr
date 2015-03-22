@@ -42,7 +42,7 @@
 #include "lua-compat-5.3/c-api/compat-5.3.h"
 #include "ut/utlist.h"
 
-#include "netif.h"
+#include "netdev.h"
 #include "queue.h"
 #include "pkt.h"
 #include "printf.h"

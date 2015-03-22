@@ -32,7 +32,7 @@ struct hype_args {
 	struct range *targets;
 	struct range *ports;
 
-	struct netif *netif;
+	struct netdev *netdev;
 
 	char *script;
 

@@ -33,16 +33,16 @@
 
 #include <pcap/pcap.h>
 
-#include "netif.h"
+#include "netdev.h"
 #include "printf.h"
 
-static void netif_inject_pcap(struct netif *n, uint8_t *buf, size_t len) {
+static void netdev_inject_pcap(struct netdev *n, uint8_t *buf, size_t len) {
 	int rc = pcap_sendpacket(n->p, buf, len);
 	if (rc < 0)
 		fail_printf("Error sending packet: %s", pcap_geterr(n->p));
 }
 
-static const uint8_t *netif_capture_pcap(struct netif *n, int *len) {
+static const uint8_t *netdev_capture_pcap(struct netdev *n, int *len) {
 	const uint8_t *buf;
 	struct pcap_pkthdr *pkt_hdr;
 
@@ -67,25 +67,25 @@ static const uint8_t *netif_capture_pcap(struct netif *n, int *len) {
 	return NULL;
 }
 
-static void netif_close_pcap(struct netif *n) {
+static void netdev_close_pcap(struct netdev *n) {
 	pcap_close(n->p);
 }
 
-static struct netif netif_pcap = {
+static struct netdev netdev_pcap = {
 	.p       = NULL,
-	.inject  = netif_inject_pcap,
-	.capture = netif_capture_pcap,
-	.close   = netif_close_pcap,
+	.inject  = netdev_inject_pcap,
+	.capture = netdev_capture_pcap,
+	.close   = netdev_close_pcap,
 };
 
-struct netif *netif_open_pcap(const char *dev_name) {
+struct netdev *netdev_open_pcap(const char *dev_name) {
 	char err[PCAP_ERRBUF_SIZE];
 
 	pcap_t *pcap = pcap_open_live(dev_name, 262144, 0, 10, err);
 	if (pcap == NULL)
 		fail_printf("Error opening pcap: %s", err);
 
-	netif_pcap.p = pcap;
+	netdev_pcap.p = pcap;
 
-	return &netif_pcap;
+	return &netdev_pcap;
 }

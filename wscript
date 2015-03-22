@@ -138,7 +138,7 @@ def build(bld):
 		# sources
 		( 'src/bucket.c'                           ),
 		( 'src/hype.c'                             ),
-		( 'src/netif_pcap.c',           'pcap'     ),
+		( 'src/netdev_pcap.c',          'pcap'     ),
 		( 'src/pkt.c'                              ),
 		( 'src/pkt_arp.c'                          ),
 		( 'src/pkt_chksum.c'                       ),

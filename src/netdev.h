@@ -28,12 +28,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-struct netif {
+struct netdev {
 	void *p;
 
-	void (*inject)(struct netif *, uint8_t *, size_t);
-	const uint8_t *(*capture)(struct netif *, int *);
-	void (*close)(struct netif *);
+	void (*inject)(struct netdev *, uint8_t *, size_t);
+	const uint8_t *(*capture)(struct netdev *, int *);
+	void (*close)(struct netdev *);
 };
 
-struct netif *netif_open_pcap(const char *dev_name);
+struct netdev *netdev_open_pcap(const char *dev_name);

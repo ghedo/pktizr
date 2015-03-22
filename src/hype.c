@@ -42,7 +42,7 @@
 #include <net/if.h>
 
 #include "bucket.h"
-#include "netif.h"
+#include "netdev.h"
 #include "ranges.h"
 #include "resolv.h"
 #include "routes.h"
@@ -185,11 +185,11 @@ int main(int argc, char *argv[]) {
 	if (rc < 0)
 		fail_printf("Error resolving local IP");
 
-	args->netif = netif_open_pcap(route.if_name);
-	if (!args->netif)
-		fail_printf("Error opening netif");
+	args->netdev = netdev_open_pcap(route.if_name);
+	if (!args->netdev)
+		fail_printf("Error opening netdev");
 
-	rc = resolv_addr_to_mac(args->netif,
+	rc = resolv_addr_to_mac(args->netdev,
 	                        args->local_mac, args->local_addr,
 	                        args->gateway_mac, args->gateway_addr);
 	if (rc < 0)
@@ -212,7 +212,7 @@ int main(int argc, char *argv[]) {
 	pthread_join(args->recv_thread, NULL);
 	pthread_join(args->send_thread, NULL);
 
-	args->netif->close(args->netif);
+	args->netdev->close(args->netdev);
 
 	range_list_free(args->targets);
 	range_list_free(args->ports);
@@ -257,7 +257,7 @@ static void *send_cb(void *p) {
 			if (pkt_len < 0)
 				goto done;
 
-			args->netif->inject(args->netif, buf, pkt_len);
+			args->netdev->inject(args->netdev, buf, pkt_len);
 			args->pkt_sent++;
 
 			bucket.tokens--;
@@ -291,7 +291,7 @@ static void *recv_cb(void *p) {
 		int rc, len;
 		struct pkt *pkt = NULL;
 
-		const uint8_t *buf = args->netif->capture(args->netif, &len);
+		const uint8_t *buf = args->netdev->capture(args->netdev, &len);
 		if (buf == NULL)
 			continue;
 
