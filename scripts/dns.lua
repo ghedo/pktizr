@@ -1,6 +1,8 @@
 -- This script sends out DNS requests for the "example.com" domain, and listens
 -- for matching replies.
 
+local bin = require("hype.bin")
+
 -- template packets
 local pkt_ip4 = hype.IP({id=1, src=hype.local_addr})
 local pkt_udp = hype.UDP({sport=64434})
@@ -16,7 +18,7 @@ function loop(addr, port)
 	pkt_udp.dport = port
 
 	local seq = hype.cookie16(hype.local_addr, addr, 64434, port)
-	pkt_dns.payload = hype.string.pack('>Hc' .. dns_length, seq, dns_query)
+	pkt_dns.payload = bin.pack('>Hc' .. dns_length, seq, dns_query)
 
 	return pkt_ip4, pkt_udp, pkt_dns
 end
@@ -38,7 +40,7 @@ function recv(pkts)
 
 	local pkt_id = hype.cookie16(dst, src, dport, sport)
 
-	local dns_id = hype.string.unpack('>H', pkt_dns.payload)
+	local dns_id = bin.unpack('>H', pkt_dns.payload)
 
 	if pkt_id ~= dns_id then
 		return

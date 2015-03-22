@@ -78,6 +78,8 @@ static int hype_cookie32(lua_State *L);
 static int hype_print(lua_State *L);
 static int hype_send(lua_State *L);
 
+extern int luaopen_compat53_string(lua_State *L);
+
 static const luaL_Reg hype_fns[] = {
 	{ "IP",       hype_IP       },
 	{ "ICMP",     hype_ICMP     },
@@ -91,6 +93,11 @@ static const luaL_Reg hype_fns[] = {
 	{ NULL,       NULL          }
 };
 
+static const luaL_Reg hype_libs[] = {
+	{ "hype.bin", luaopen_compat53_string },
+	{ NULL,       NULL                    }
+};
+
 void *script_load(struct hype_args *args) {
 	int rc;
 
@@ -102,10 +109,12 @@ void *script_load(struct hype_args *args) {
 
 	lua_newtable(L);
 
-	luaL_setfuncs(L, hype_fns, 0);
+	for (int i = 0; hype_libs[i].name; i++) {
+		luaL_requiref(L, hype_libs[i].name, hype_libs[i].func, 1);
+		lua_pop(L, 1);
+	}
 
-	luaopen_compat53_string(L);
-	lua_setfield(L, -2, "string");
+	luaL_setfuncs(L, hype_fns, 0);
 
 	char local_addr_str[INET_ADDRSTRLEN];
 	uint32_t laddr = htonl(args->local_addr);

@@ -1,6 +1,7 @@
 -- This script sends out ICMP echo requests and listens for matching replies
 -- like the ping(8) utility.
 
+local bin = require("hype.bin")
 local socket = require("socket")
 
 -- template packets
@@ -13,7 +14,7 @@ function loop(addr, port)
 
 	pkt_icmp.seq = hype.cookie16(hype.local_addr, addr, 65535, 0)
 
-	pkt_raw.payload = hype.string.pack('=n', socket.gettime())
+	pkt_raw.payload = bin.pack('=n', socket.gettime())
 
 	return pkt_ip4, pkt_icmp, pkt_raw
 end
@@ -39,7 +40,7 @@ function recv(pkts)
 	end
 
 	local now   = socket.gettime()
-	local clock = hype.string.unpack('=n', pkt_raw.payload)
+	local clock = bin.unpack('=n', pkt_raw.payload)
 
 	hype.print("Host %s is up, time %f ms", pkt_ip4.src, (now - clock) * 1000)
 	return true

@@ -1,5 +1,6 @@
 -- This script sends out NTP requests and listens for matching replies.
 
+local bin = require("hype.bin")
 local bit = require("bit")
 
 -- NTP MONLIST
@@ -27,7 +28,7 @@ function recv(pkts)
 		return
 	end
 
-	local vers, impl, code = hype.string.unpack('>BBB', pkt_ntp.payload)
+	local vers, impl, code = bin.unpack('>BBB', pkt_ntp.payload)
 
 	-- response bit set
 	if bit.rshift(vers, 7) ~= 1 then
