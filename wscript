@@ -163,6 +163,9 @@ def build(bld):
 		( 'deps/lua-compat-5.3/ltablib.c'          ),
 		( 'deps/lua-compat-5.3/lutf8lib.c'         ),
 
+		# Lua BitOpt
+		( 'deps/lua-bitop/bit.c'                   ),
+
 		# siphash
 		( 'deps/siphash/siphash24.c'               ),
 	]

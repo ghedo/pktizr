@@ -79,7 +79,8 @@ static int hype_cookie32(lua_State *L);
 static int hype_print(lua_State *L);
 static int hype_send(lua_State *L);
 
-extern int luaopen_compat53_string(lua_State *L);
+LUALIB_API int luaopen_bit(lua_State *L);
+LUALIB_API int luaopen_compat53_string(lua_State *L);
 
 static const luaL_Reg hype_fns[] = {
 	{ "IP",       hype_IP       },
@@ -97,6 +98,7 @@ static const luaL_Reg hype_fns[] = {
 
 static const luaL_Reg hype_libs[] = {
 	{ "hype.bin", luaopen_compat53_string },
+	{ "hype.bit", luaopen_bit             },
 	{ NULL,       NULL                    }
 };
 
