@@ -1,0 +1,166 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>hype &mdash; hype 0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="hype 0.0 documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="index.html">hype 0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="hype">
+<span id="hype-1"></span><h1>hype<a class="headerlink" href="#hype" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="synopsis">
+<h2>SYNOPSIS<a class="headerlink" href="#synopsis" title="Permalink to this headline">¶</a></h2>
+<p><strong>hype &lt;targets&gt; [options]</strong></p>
+</div>
+<div class="section" id="description">
+<h2>DESCRIPTION<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p><strong>hype</strong> is a command-line packet generator and analyzer. It lets you generate
+custom IP/ICMP/TCP/UDP packets, send them over the network and analyze replies
+using Lua scripts.</p>
+</div>
+<div class="section" id="options">
+<h2>OPTIONS<a class="headerlink" href="#options" title="Permalink to this headline">¶</a></h2>
+<dl class="option">
+<dt id="cmdoption-hype-S">
+<span id="cmdoption-hype--script"></span><tt class="descname">-S</tt><tt class="descclassname"></tt><tt class="descclassname">, </tt><tt class="descname">--script</tt><tt class="descclassname">=&lt;file&gt;</tt><a class="headerlink" href="#cmdoption-hype-S" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Load and run the given script.</p>
+<dl class="option">
+<dt id="cmdoption-hype-p">
+<span id="cmdoption-hype--ports"></span><tt class="descname">-p</tt><tt class="descclassname"></tt><tt class="descclassname">, </tt><tt class="descname">--ports</tt><tt class="descclassname">=&lt;ranges&gt;</tt><a class="headerlink" href="#cmdoption-hype-p" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Use the specified port ranges.</p>
+<dl class="option">
+<dt id="cmdoption-hype-r">
+<span id="cmdoption-hype--rate"></span><tt class="descname">-r</tt><tt class="descclassname"></tt><tt class="descclassname">, </tt><tt class="descname">--rate</tt><tt class="descclassname">=&lt;packets_per_second&gt;</tt><a class="headerlink" href="#cmdoption-hype-r" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Send packets no faster than the specified rate [default: 100].</p>
+<dl class="option">
+<dt id="cmdoption-hype-s">
+<span id="cmdoption-hype--seed"></span><tt class="descname">-s</tt><tt class="descclassname"></tt><tt class="descclassname">, </tt><tt class="descname">--seed</tt><tt class="descclassname">=&lt;seed&gt;</tt><a class="headerlink" href="#cmdoption-hype-s" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Use the given number as seed value.</p>
+<dl class="option">
+<dt id="cmdoption-hype-w">
+<span id="cmdoption-hype--wait"></span><tt class="descname">-w</tt><tt class="descclassname"></tt><tt class="descclassname">, </tt><tt class="descname">--wait</tt><tt class="descclassname">=&lt;seconds&gt;</tt><a class="headerlink" href="#cmdoption-hype-w" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Wait the given amount of seconds after the scan is complete [default: 5].</p>
+<dl class="option">
+<dt id="cmdoption-hype-c">
+<span id="cmdoption-hype--count"></span><tt class="descname">-c</tt><tt class="descclassname"></tt><tt class="descclassname">, </tt><tt class="descname">--count</tt><tt class="descclassname">=&lt;count&gt;</tt><a class="headerlink" href="#cmdoption-hype-c" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Send the given amount of duplicate packets [default: 1].</p>
+<dl class="option">
+<dt id="cmdoption-hype-q">
+<span id="cmdoption-hype--quiet"></span><tt class="descname">-q</tt><tt class="descclassname"></tt><tt class="descclassname">, </tt><tt class="descname">--quiet</tt><tt class="descclassname"></tt><a class="headerlink" href="#cmdoption-hype-q" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Don&#8217;t show the status line.</p>
+</div>
+<div class="section" id="author">
+<h2>AUTHOR<a class="headerlink" href="#author" title="Permalink to this headline">¶</a></h2>
+<p>Alessandro Ghedini &lt;<a class="reference external" href="mailto:alessandro&#37;&#52;&#48;ghedini&#46;me">alessandro<span>&#64;</span>ghedini<span>&#46;</span>me</a>&gt;</p>
+</div>
+<div class="section" id="copyright">
+<h2>COPYRIGHT<a class="headerlink" href="#copyright" title="Permalink to this headline">¶</a></h2>
+<p>Copyright (C) 2015 Alessandro Ghedini &lt;<a class="reference external" href="mailto:alessandro&#37;&#52;&#48;ghedini&#46;me">alessandro<span>&#64;</span>ghedini<span>&#46;</span>me</a>&gt;</p>
+<p>This program is released under the 2 clause BSD license.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">hype</a><ul>
+<li><a class="reference internal" href="#synopsis">SYNOPSIS</a></li>
+<li><a class="reference internal" href="#description">DESCRIPTION</a></li>
+<li><a class="reference internal" href="#options">OPTIONS</a></li>
+<li><a class="reference internal" href="#author">AUTHOR</a></li>
+<li><a class="reference internal" href="#copyright">COPYRIGHT</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/hype.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="index.html">hype 0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Alessandro Ghedini.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

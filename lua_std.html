@@ -1,0 +1,138 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>std library &mdash; hype 0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="hype 0.0 documentation" href="index.html" />
+    <link rel="prev" title="pkt library" href="lua_pkt.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="lua_pkt.html" title="pkt library"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">hype 0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="std-library">
+<span id="lua-std"></span><h1>std library<a class="headerlink" href="#std-library" title="Permalink to this headline">¶</a></h1>
+<p>The <em>std</em> library provides utility function for scripts. It can be imported
+into a script as follows:</p>
+<div class="highlight-lua"><div class="highlight"><pre><span class="kd">local</span> <span class="n">std</span> <span class="o">=</span> <span class="nb">require</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">hype.std&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The provided functions can then be used by prepending <cite>std.</cite> to the name (e.g.
+<cite>std.print(...)</cite>).</p>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="get_addr">
+<tt class="descname">get_addr</tt><big>(</big><big>)</big><a class="headerlink" href="#get_addr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the local IP address of the network interface used to send and
+received packets.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="get_time">
+<tt class="descname">get_time</tt><big>(</big><big>)</big><a class="headerlink" href="#get_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the current date and time in seconds.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="print">
+<tt class="descname">print</tt><big>(</big><em>fmt</em>, <em>v1</em>, <em>v2</em>, <em>...</em><big>)</big><a class="headerlink" href="#print" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints a string containing the values v1, v2, etc. stringified according to
+the format string fmt.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">std library</a><ul>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="lua_pkt.html"
+                        title="previous chapter">pkt library</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/lua_std.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="lua_pkt.html" title="pkt library"
+             >previous</a> |</li>
+        <li><a href="index.html">hype 0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Alessandro Ghedini.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

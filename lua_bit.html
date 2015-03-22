@@ -1,0 +1,218 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>bit library &mdash; hype 0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="hype 0.0 documentation" href="index.html" />
+    <link rel="next" title="pkt library" href="lua_pkt.html" />
+    <link rel="prev" title="bin library" href="lua_bin.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="lua_pkt.html" title="pkt library"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="lua_bin.html" title="bin library"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">hype 0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="bit-library">
+<span id="lua-bit"></span><h1>bit library<a class="headerlink" href="#bit-library" title="Permalink to this headline">¶</a></h1>
+<p>The <em>bit</em> library provides function for bitwise operations on numbers, and is
+based on the <a class="reference external" href="http://bitop.luajit.org/">bitop</a> Lua library. It can be imported into a script as follows:</p>
+<div class="highlight-lua"><div class="highlight"><pre><span class="kd">local</span> <span class="n">bit</span> <span class="o">=</span> <span class="nb">require</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">hype.bit&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The provided functions can then be used by prepending <cite>bit.</cite> to the name (e.g.
+<cite>bit.bnot(...)</cite>).</p>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="tobit">
+<tt class="descname">tobit</tt><big>(</big><em>x</em><big>)</big><a class="headerlink" href="#tobit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalizes a number to the numeric range for bit operations and returns it.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tohex">
+<tt class="descname">tohex</tt><big>(</big><em>x</em><span class="optional">[</span>, <em>n</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#tohex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts its first argument to a hex string. The number of hex digits is
+given by the absolute value of the optional second argument. Positive numbers
+between 1 and 8 generate lowercase hex digits. Negative numbers generate
+uppercase hex digits. Only the least-significant 4*|n| bits are used. The
+default is to generate 8 lowercase hex digits.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bnot">
+<tt class="descname">bnot</tt><big>(</big><em>x</em><big>)</big><a class="headerlink" href="#bnot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the bitwise not of its argument.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bor">
+<tt class="descname">bor</tt><big>(</big><em>x1</em><span class="optional">[</span>, <em>x2...</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#bor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the bitwise or of all of its arguments. Note that more than two
+arguments are allowed.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="band">
+<tt class="descname">band</tt><big>(</big><em>x1</em><span class="optional">[</span>, <em>x2...</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#band" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the bitwise and of all of its arguments. Note that more than two
+arguments are allowed.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bxor">
+<tt class="descname">bxor</tt><big>(</big><em>x1</em><span class="optional">[</span>, <em>x2...</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#bxor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the bitwise xor of all of its arguments. Note that more than two
+arguments are allowed.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lshift">
+<tt class="descname">lshift</tt><big>(</big><em>x</em>, <em>n</em><big>)</big><a class="headerlink" href="#lshift" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="rshift">
+<tt class="descname">rshift</tt><big>(</big><em>x</em>, <em>n</em><big>)</big><a class="headerlink" href="#rshift" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="arshift">
+<tt class="descname">arshift</tt><big>(</big><em>x</em>, <em>n</em><big>)</big><a class="headerlink" href="#arshift" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns either the bitwise logical left-shift, bitwise logical right-shift,
+or bitwise arithmetic right-shift of its first argument by the number of
+bits given by the second argument.</p>
+<p>Logical shifts treat the first argument as an unsigned number and shift in
+0-bits. Arithmetic right-shift treats the most-significant bit as a sign bit
+and replicates it.</p>
+<p>Only the lower 5 bits of the shift count are used (reduces to the range [0..31]).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rol">
+<tt class="descname">rol</tt><big>(</big><em>x</em>, <em>n</em><big>)</big><a class="headerlink" href="#rol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the bitwise left rotation of its first argument by the number of bits
+given by the second argument. Bits shifted out on one side are shifted back
+in on the other side. Only the lower 5 bits of the rotate count are used
+(reduces to the range [0..31]).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ror">
+<tt class="descname">ror</tt><big>(</big><em>x</em>, <em>n</em><big>)</big><a class="headerlink" href="#ror" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the bitwise right rotation of its first argument by the number of
+bits given by the second argument. Bits shifted out on one side are shifted
+back in on the other side. Only the lower 5 bits of the rotate count are used
+(reduces to the range [0..31]).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bswap">
+<tt class="descname">bswap</tt><big>(</big><em>x</em><big>)</big><a class="headerlink" href="#bswap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Swaps the bytes of its argument and returns it. This can be used to convert
+little-endian 32 bit numbers to big-endian 32 bit numbers or vice versa.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">bit library</a><ul>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="lua_bin.html"
+                        title="previous chapter">bin library</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="lua_pkt.html"
+                        title="next chapter">pkt library</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/lua_bit.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="lua_pkt.html" title="pkt library"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="lua_bin.html" title="bin library"
+             >previous</a> |</li>
+        <li><a href="index.html">hype 0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Alessandro Ghedini.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

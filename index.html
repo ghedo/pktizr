@@ -1,141 +1,215 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta http-equiv='content-type' value='text/html;charset=utf8'>
-  <meta name='generator' value='Ronn/v0.7.3 (http://github.com/rtomayko/ronn/tree/0.7.3)'>
-  <title>hype(1) - scriptable, asynchronous network packet generator/analyzer</title>
-  <style type='text/css' media='all'>
-  /* style: man */
-  body#manpage {margin:0}
-  .mp {max-width:100ex;padding:0 9ex 1ex 4ex}
-  .mp p,.mp pre,.mp ul,.mp ol,.mp dl {margin:0 0 20px 0}
-  .mp h2 {margin:10px 0 0 0}
-  .mp > p,.mp > pre,.mp > ul,.mp > ol,.mp > dl {margin-left:8ex}
-  .mp h3 {margin:0 0 0 4ex}
-  .mp dt {margin:0;clear:left}
-  .mp dt.flush {float:left;width:8ex}
-  .mp dd {margin:0 0 0 9ex}
-  .mp h1,.mp h2,.mp h3,.mp h4 {clear:left}
-  .mp pre {margin-bottom:20px}
-  .mp pre+h2,.mp pre+h3 {margin-top:22px}
-  .mp h2+pre,.mp h3+pre {margin-top:5px}
-  .mp img {display:block;margin:auto}
-  .mp h1.man-title {display:none}
-  .mp,.mp code,.mp pre,.mp tt,.mp kbd,.mp samp,.mp h3,.mp h4 {font-family:monospace;font-size:14px;line-height:1.42857142857143}
-  .mp h2 {font-size:16px;line-height:1.25}
-  .mp h1 {font-size:20px;line-height:2}
-  .mp {text-align:justify;background:#fff}
-  .mp,.mp code,.mp pre,.mp pre code,.mp tt,.mp kbd,.mp samp {color:#131211}
-  .mp h1,.mp h2,.mp h3,.mp h4 {color:#030201}
-  .mp u {text-decoration:underline}
-  .mp code,.mp strong,.mp b {font-weight:bold;color:#131211}
-  .mp em,.mp var {font-style:italic;color:#232221;text-decoration:none}
-  .mp a,.mp a:link,.mp a:hover,.mp a code,.mp a pre,.mp a tt,.mp a kbd,.mp a samp {color:#0000ff}
-  .mp b.man-ref {font-weight:normal;color:#434241}
-  .mp pre {padding:0 4ex}
-  .mp pre code {font-weight:normal;color:#434241}
-  .mp h2+pre,h3+pre {padding-left:0}
-  ol.man-decor,ol.man-decor li {margin:3px 0 10px 0;padding:0;float:left;width:33%;list-style-type:none;text-transform:uppercase;color:#999;letter-spacing:1px}
-  ol.man-decor {width:100%}
-  ol.man-decor li.tl {text-align:left}
-  ol.man-decor li.tc {text-align:center;letter-spacing:4px}
-  ol.man-decor li.tr {text-align:right;float:right}
-  </style>
-</head>
-<!--
-  The following styles are deprecated and will be removed at some point:
-  div#man, div#man ol.man, div#man ol.head, div#man ol.man.
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-  The .man-page, .man-decor, .man-head, .man-foot, .man-title, and
-  .man-navigation should be used instead.
--->
-<body id='manpage'>
-  <div class='mp' id='man'>
 
-  <div class='man-navigation' style='display:none'>
-    <a href="#NAME">NAME</a>
-    <a href="#SYNOPSIS">SYNOPSIS</a>
-    <a href="#DESCRIPTION">DESCRIPTION</a>
-    <a href="#OPTIONS">OPTIONS</a>
-    <a href="#AUTHOR">AUTHOR</a>
-    <a href="#COPYRIGHT">COPYRIGHT</a>
-  </div>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>hype &mdash; hype 0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="hype 0.0 documentation" href="#" />
+    <link rel="next" title="bin library" href="lua_bin.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="lua_bin.html" title="bin library"
+             accesskey="N">next</a> |</li>
+        <li><a href="#">hype 0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
 
-  <ol class='man-decor man-head man head'>
-    <li class='tl'>hype(1)</li>
-    <li class='tc'></li>
-    <li class='tr'>hype(1)</li>
-  </ol>
-
-  <h2 id="NAME">NAME</h2>
-<p class="man-name">
-  <code>hype</code> - <span class="man-whatis">scriptable, asynchronous network packet generator/analyzer</span>
-</p>
-
-<h2 id="SYNOPSIS">SYNOPSIS</h2>
-
-<p><code>hype &lt;targets> [options]</code></p>
-
-<h2 id="DESCRIPTION">DESCRIPTION</h2>
-
-<p><strong>hype</strong> is a command-line packet generator and analyzer. It lets you generate
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="hype">
+<h1>hype<a class="headerlink" href="#hype" title="Permalink to this headline">¶</a></h1>
+<a class="reference external image-reference" href="https://travis-ci.org/ghedo/hype"><img alt="https://travis-ci.org/ghedo/hype.png" src="https://travis-ci.org/ghedo/hype.png" /></a>
+<p><a class="reference external" href="https://ghedo.github.io/hype/">hype</a> is a command-line packet generator and analyzer. It lets you generate
 custom IP/ICMP/TCP/UDP packets, send them over the network and analyze replies
 using Lua scripts.</p>
+<p>Among other things, hype can be used to test firewall/IDS rules, perform
+host discovery, port scanning and OS fingerprinting, test network performance
+and so on.</p>
+<p>hype is fully asynchronous, meaning that it has separate transmit and receive
+threads and Lua contexts. The &#8220;sending&#8221; part of a script can&#8217;t communicate with
+the &#8220;receiving&#8221; part.</p>
+<p>This makes it possible for hype to send packets as fast as possible without the
+need to synchronously wait for replies, and send as many packets as needed
+without worrying about memory exhaustion since it doesn&#8217;t need to keep track of
+sent packets. However this makes writing scripts a little bit trickier.</p>
+<div class="section" id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
+<p>Under the <a class="reference external" href="https://github.com/ghedo/hype/tree/master/scripts">scripts</a> directory you can find some example scripts. To
+run a script you need to specify a list of target hosts (e.g. <cite>192.168.1.0/24</cite>),
+a port range (e.g. <cite>0-65535</cite>) and obviously the script you want to run:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ sudo hype 192.168.1.0/24 -p 1 -S scripts/ping.lua
+</pre></div>
+</div>
+<p>This will run the <cite>ping.lua</cite> script against all the hosts on the 192.168.0/24
+network. The script simply sends out ICMP echo requests like the <cite>ping(8)</cite>
+utility does, and can be used to discover active hosts from a set of IP ranges.</p>
+<p>The port range (specified with the <cite>-p</cite> option) is <cite>1</cite>, since we only want to
+send a single packet per host:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ sudo hype 192.168.1.0/24 -p 0-65535 -S scripts/syn.lua
+</pre></div>
+</div>
+<p>The <cite>syn.lua</cite> script sends out TCP SYN packets and can be used to discover open
+ports on target hosts. In this case the port range is <cite>0-65353</cite> which means all
+ports on the targets will be scanned.</p>
+<p>Note that by default hype sends packet at a rate of 100 packets per second, in
+order to avoid flooding the local network or the target hosts. You can specify a
+different value using the <cite>-r</cite> command-line option:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ sudo hype 192.168.1.0/24 -p 0-65535 -S scripts/syn.lua -r 1000
+</pre></div>
+</div>
+<p>This will send 1000 packets per second instead. To disable rate limiting, the
+value <cite>0</cite> (which means &#8220;send packets as fast as possible&#8221;) can be used (<strong>use
+this option with caution</strong>):</p>
+<div class="highlight-python"><div class="highlight"><pre>$ sudo hype 192.168.1.0/24 -p 0-65535 -S scripts/syn.lua -r 0
+</pre></div>
+</div>
+<p>See the <a class="reference external" href="https://ghedo.github.io/hype/hype.html">man page</a> for more information.</p>
+</div>
+<div class="section" id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><cite>liblua5.1/5.2/jit</cite></li>
+<li><cite>libpcap</cite></li>
+<li><cite>liburcu</cite></li>
+</ul>
+</div>
+<div class="section" id="building">
+<h2>Building<a class="headerlink" href="#building" title="Permalink to this headline">¶</a></h2>
+<p>hype is distributed as source code. Install with:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ ./bootstrap.py
+$ ./waf configure
+$ ./waf build
+</pre></div>
+</div>
+</div>
+<div class="section" id="fuzzing">
+<h2>Fuzzing<a class="headerlink" href="#fuzzing" title="Permalink to this headline">¶</a></h2>
+<p>hype&#8217;s packet decoder can be tested by using the afl fuzzer as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ CC=afl-gcc ./waf configure --sanitize=address
+$ ./waf build_fuzz
+$ afl-fuzz -i tests/ -o results/ -m none build/pkt_fuzz @@
+</pre></div>
+</div>
+</div>
+<div class="section" id="copyright">
+<h2>Copyright<a class="headerlink" href="#copyright" title="Permalink to this headline">¶</a></h2>
+<p>Copyright (C) 2015 Alessandro Ghedini &lt;<a class="reference external" href="mailto:alessandro&#37;&#52;&#48;ghedini&#46;me">alessandro<span>&#64;</span>ghedini<span>&#46;</span>me</a>&gt;</p>
+<p>See <a class="reference external" href="https://github.com/ghedo/hype/tree/master/COPYING">COPYING</a> for the license.</p>
+</div>
+<div class="section" id="lua-api">
+<h2>Lua API<a class="headerlink" href="#lua-api" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="lua_bin.html">bin library</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lua_bin.html#functions">Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lua_bin.html#format">Format</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lua_bit.html">bit library</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lua_bit.html#functions">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lua_pkt.html">pkt library</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lua_pkt.html#functions">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lua_std.html">std library</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lua_std.html#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
 
-<h2 id="OPTIONS">OPTIONS</h2>
 
-<p><code>-S, --script=&lt;file></code></p>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">hype</a><ul>
+<li><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li><a class="reference internal" href="#building">Building</a></li>
+<li><a class="reference internal" href="#fuzzing">Fuzzing</a></li>
+<li><a class="reference internal" href="#copyright">Copyright</a></li>
+<li><a class="reference internal" href="#lua-api">Lua API</a></li>
+</ul>
+</li>
+</ul>
 
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Load and run the given script.</p>
-
-<p><code>-p, --ports=&lt;ranges></code></p>
-
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Use the specified port ranges.</p>
-
-<p><code>-r, --rate=&lt;packets_per_second></code></p>
-
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Send packets no faster than the specified rate (default is 100).</p>
-
-<p><code>-s, --seed=&lt;seed></code></p>
-
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Use the given number as seed value.</p>
-
-<p><code>-w, --wait=&lt;seconds></code></p>
-
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Wait the given amount of seconds after the scan is complete (default is 5).</p>
-
-<p><code>-c, --count=&lt;count></code></p>
-
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Send the given amount of duplicate packets (default is 1).</p>
-
-<p><code>-q, --quiet</code></p>
-
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Don't show the status line.</p>
-
-<h2 id="AUTHOR">AUTHOR</h2>
-
-<p>Alessandro Ghedini <a href="&#x6d;&#97;&#105;&#x6c;&#116;&#x6f;&#x3a;&#x61;&#x6c;&#101;&#x73;&#x73;&#97;&#x6e;&#100;&#x72;&#111;&#64;&#103;&#104;&#x65;&#x64;&#105;&#110;&#105;&#46;&#109;&#x65;" data-bare-link="true">&#97;&#108;&#101;&#x73;&#x73;&#x61;&#110;&#x64;&#114;&#x6f;&#64;&#103;&#104;&#101;&#x64;&#105;&#x6e;&#105;&#x2e;&#x6d;&#101;</a></p>
-
-<h2 id="COPYRIGHT">COPYRIGHT</h2>
-
-<p>Copyright (C) 2015 Alessandro Ghedini <a href="&#109;&#x61;&#x69;&#x6c;&#116;&#x6f;&#x3a;&#97;&#108;&#x65;&#115;&#115;&#x61;&#x6e;&#x64;&#114;&#x6f;&#x40;&#x67;&#x68;&#x65;&#x64;&#x69;&#x6e;&#105;&#x2e;&#109;&#101;" data-bare-link="true">&#97;&#108;&#101;&#115;&#x73;&#x61;&#x6e;&#x64;&#x72;&#x6f;&#x40;&#x67;&#104;&#x65;&#x64;&#x69;&#110;&#x69;&#46;&#109;&#101;</a></p>
-
-<p>This program is released under the 2 clause BSD license.</p>
-
-
-  <ol class='man-decor man-foot man foot'>
-    <li class='tl'></li>
-    <li class='tc'>January 2015</li>
-    <li class='tr'>hype(1)</li>
-  </ol>
-
-  </div>
-</body>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="lua_bin.html"
+                        title="next chapter">bin library</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="lua_bin.html" title="bin library"
+             >next</a> |</li>
+        <li><a href="#">hype 0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Alessandro Ghedini.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
 </html>
