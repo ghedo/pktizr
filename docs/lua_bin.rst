@@ -32,7 +32,7 @@ Format
 ~~~~~~
 
 The format used by these functions is compatible with the one for the
-`string.pack()` and `string.unpack()` functions ina Lua 5.3 (in fact they are
-equivalent). See the Lua reference_ for more information.
+`string.pack()` and `string.unpack()` functions in Lua 5.3. See the Lua
+reference_ for more information.
 
 .. _reference: http://www.lua.org/manual/5.3/manual.html#6.4.2
