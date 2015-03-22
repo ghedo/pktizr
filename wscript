@@ -186,11 +186,19 @@ def build(bld):
 
 	if bld.env['SPHINX_BUILD']:
 		bld(
+			name     = 'docs config',
+			features = 'subst',
+			source   = 'docs/conf.py.in',
+			target   = 'docs/conf.py',
+			VERSION  = VERSION,
+		)
+
+		bld(
 			name   = 'man docs',
 			cwd    = 'docs',
-			rule   = 'sphinx-build -b man . ../build/docs/man',
+			rule   = 'sphinx-build -c ../build/docs/ -b man . ../build/docs/man',
 			source = bld.path.ant_glob('docs/hype.rst') +
-			         bld.path.ant_glob('docs/conf.py'),
+			         bld.path.ant_glob('build/docs/conf.py'),
 			target = 'docs/man/hype.1',
 			install_path = bld.env.MANDIR
 		)
@@ -198,10 +206,10 @@ def build(bld):
 		bld(
 			name   = 'html docs',
 			cwd    = 'docs',
-			rule   = 'sphinx-build -b html . ../build/docs/html',
+			rule   = 'sphinx-build -c ../build/docs/ -b html . ../build/docs/html',
 			source = bld.path.ant_glob('docs/*.rst') +
-			         bld.path.ant_glob('docs/conf.py') +
-			         bld.path.ant_glob('docs/README.rst'),
+			         bld.path.ant_glob('docs/README.rst') +
+			         bld.path.ant_glob('build/docs/conf.py'),
 			target = 'docs/html/index.html',
 		)
 
