@@ -3,7 +3,7 @@
 bin library
 -----------
 
-The *bin* library provides function for packing and unpacking binary data. It
+The `bin` library provides function for packing and unpacking binary data. It
 can be imported into a script as follows:
 
 .. code-block:: lua
@@ -19,14 +19,15 @@ Functions
 
 .. function:: pack(fmt, v1, v2, ...)
 
-   Returns a binary string containing the values v1, v2, etc. packed (that is,
-   serialized in binary form) according to the format string fmt.
+   Returns a binary string containing the values `v1`, `v2`, etc. packed (that
+   is, serialized in binary form) according to the format string `fmt`.
 
 .. function:: unpack(fmt, s [, pos])
 
-   Returns the values packed in string s according to the format string fmt. An
-   optional pos marks where to start reading in s (default is 1). After the read
-   values, this function also returns the index of the first unread byte in s.
+   Returns the values packed in the string `s` according to the format string
+   `fmt`. An optional `pos` marks where to start reading in `s` (default is 1).
+   After the read values, this function also returns the index of the first
+   unread byte in `s`.
 
 Format
 ~~~~~~

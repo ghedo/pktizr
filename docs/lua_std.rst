@@ -3,7 +3,7 @@
 std library
 -----------
 
-The *std* library provides utility function for scripts. It can be imported
+The `std` library provides utility function for scripts. It can be imported
 into a script as follows:
 
 .. code-block:: lua
@@ -26,7 +26,10 @@ Functions
 
    Returns the current date and time in seconds.
 
-.. function:: print (fmt, v1, v2, ...)
+.. function:: print(fmt, v1, v2, ...)
 
-   Prints a string containing the values v1, v2, etc. stringified according to
-   the format string fmt.
+   Prints a string containing the values `v1`, `v2`, etc. stringified according
+   to the format string fmt. The string is generated using the `string.format()`
+   standard function. See the Lua reference_ for more information.
+
+.. _reference: http://www.lua.org/manual/5.3/manual.html#pdf-string.format
