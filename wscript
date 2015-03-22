@@ -91,8 +91,8 @@ def configure(cfg):
 	my_check_cc(cfg, 'pcap', lib='pcap',
 	            header_name='pcap.h', mandatory=True)
 
-	# ronn
-	cfg.find_program('ronn', mandatory=False)
+	# sphinx
+	cfg.find_program('sphinx-build', mandatory=False)
 
 	# afl
 	cfg.find_program('afl-fuzz', mandatory=False)
@@ -184,19 +184,25 @@ def build(bld):
 	bld.install_files(bld.env.DOCDIR + '/scripts',
 	                  bld.path.ant_glob('scripts/*.lua'))
 
-	bld.declare_chain(
-		name         = 'ronn',
-		rule         = '${RONN} -r < ${SRC} > ${TGT}',
-		ext_in       = '.1.md',
-		ext_out      = '.1',
-		reentrant    = False,
-		install_path = bld.env.MANDIR + '/man1',
-	)
-
-	if bld.env['RONN']:
+	if bld.env['SPHINX_BUILD']:
 		bld(
-			name         = 'manpages',
-			source       = bld.path.ant_glob('docs/*.md'),
+			name   = 'man docs',
+			cwd    = 'docs',
+			rule   = 'sphinx-build -b man . ../build/docs/man',
+			source = bld.path.ant_glob('docs/hype.rst') +
+			         bld.path.ant_glob('docs/conf.py'),
+			target = 'docs/man/hype.1',
+			install_path = bld.env.MANDIR
+		)
+
+		bld(
+			name   = 'html docs',
+			cwd    = 'docs',
+			rule   = 'sphinx-build -b html . ../build/docs/html',
+			source = bld.path.ant_glob('docs/*.rst') +
+			         bld.path.ant_glob('docs/conf.py') +
+			         bld.path.ant_glob('docs/README.rst'),
+			target = 'docs/html/index.html',
 		)
 
 def build_fuzz(bld):
