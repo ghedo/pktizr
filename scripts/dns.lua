@@ -6,8 +6,11 @@ local pkt = require("hype.pkt")
 local std = require("hype.std")
 
 -- template packets
-local pkt_ip4 = pkt.IP({id=1, src=std.get_addr()})
-local pkt_udp = pkt.UDP({sport=64434})
+local local_addr = std.get_addr()
+local local_port = 64434
+
+local pkt_ip4 = pkt.IP({id=1, src=local_addr})
+local pkt_udp = pkt.UDP({sport=local_port})
 local pkt_dns = pkt.Raw({})
 
 -- A? example.com. (without initial transaction ID)
@@ -19,7 +22,7 @@ function loop(addr, port)
 
 	pkt_udp.dport = port
 
-	local seq = pkt.cookie16(std.get_addr(), addr, 64434, port)
+	local seq = pkt.cookie16(local_addr, addr, local_port, port)
 	pkt_dns.payload = bin.pack('>Hc' .. dns_length, seq, dns_query)
 
 	return pkt_ip4, pkt_udp, pkt_dns

@@ -9,8 +9,11 @@ local std = require("hype.std")
 local ntp_query = '\x17\x00\x03\x2a\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 
 -- template packets
-local pkt_ip4 = pkt.IP({id=1, src=std.get_addr()})
-local pkt_udp = pkt.UDP({sport=64434})
+local local_addr = std.get_addr()
+local local_port = 64434
+
+local pkt_ip4 = pkt.IP({id=1, src=local_addr})
+local pkt_udp = pkt.UDP({sport=local_port})
 local pkt_ntp = pkt.Raw({payload=ntp_query})
 
 function loop(addr, port)

@@ -6,14 +6,17 @@ local pkt = require("hype.pkt")
 local std = require("hype.std")
 
 -- template packets
-local pkt_ip4  = pkt.IP({id=1, src=std.get_addr()})
+local local_addr = std.get_addr()
+local local_port = 64434
+
+local pkt_ip4  = pkt.IP({id=1, src=local_addr})
 local pkt_icmp = pkt.ICMP({type=8, id=1})
 local pkt_raw  = pkt.Raw({})
 
 function loop(addr, port)
 	pkt_ip4.dst = addr
 
-	pkt_icmp.seq = pkt.cookie16(std.get_addr(), addr, 65535, 0)
+	pkt_icmp.seq = pkt.cookie16(local_addr, addr, local_port, 0)
 
 	pkt_raw.payload = bin.pack('=n', std.get_time())
 
@@ -34,7 +37,7 @@ function recv(pkts)
 		return
 	end
 
-	local seq = pkt.cookie16(pkt_ip4.dst, pkt_ip4.src, 65535, 0)
+	local seq = pkt.cookie16(pkt_ip4.dst, pkt_ip4.src, local_port, 0)
 
 	if pkt_icmp.seq ~= seq then
 		return

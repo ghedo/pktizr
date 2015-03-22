@@ -5,14 +5,17 @@ local pkt = require("hype.pkt")
 local std = require("hype.std")
 
 -- template packets
-local pkt_ip4 = pkt.IP({id=1, src=std.get_addr()})
-local pkt_tcp = pkt.TCP({sport=64434, syn=true})
+local local_addr = std.get_addr()
+local local_port = 64434
+
+local pkt_ip4 = pkt.IP({id=1, src=local_addr})
+local pkt_tcp = pkt.TCP({sport=local_port, syn=true})
 
 function loop(addr, port)
 	pkt_ip4.dst = addr
 
 	pkt_tcp.dport = port
-	pkt_tcp.seq   = pkt.cookie32(std.get_addr(), addr, 64434, port)
+	pkt_tcp.seq   = pkt.cookie32(local_addr, addr, local_port, port)
 
 	return pkt_ip4, pkt_tcp
 end
