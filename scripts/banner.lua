@@ -13,15 +13,18 @@
 -- connection is left open. The target will, at some point, realize that it's a
 -- dead connection anyway, but that may take some time.
 
+local pkt = require("hype.pkt")
+local std = require("hype.std")
+
 -- template packets
-local pkt_ip4 = hype.IP({id=1, src=hype.local_addr})
-local pkt_tcp = hype.TCP({sport=64434, syn=true})
+local pkt_ip4 = pkt.IP({id=1, src=std.get_addr()})
+local pkt_tcp = pkt.TCP({sport=64434, syn=true})
 
 function loop(addr, port)
 	pkt_ip4.dst = addr
 
 	pkt_tcp.dport = port
-	pkt_tcp.seq   = hype.cookie32(hype.local_addr, addr, 64434, port)
+	pkt_tcp.seq   = pkt.cookie32(std.get_addr(), addr, 64434, port)
 
 	return pkt_ip4, pkt_tcp
 end
@@ -41,7 +44,7 @@ function recv(pkts)
 	local sport = pkt_tcp.sport
 	local dport = pkt_tcp.dport
 
-	local seq = hype.cookie32(dst, src, dport, sport)
+	local seq = pkt.cookie32(dst, src, dport, sport)
 
 	if pkt_tcp.ack_seq - 1 ~= seq then
 		return
@@ -61,13 +64,13 @@ function recv(pkts)
 		pkt_tcp.ack_seq = pkt_tcp.seq + 1
 		pkt_tcp.seq     = seq + 1
 
-		hype.send(pkt_ip4, pkt_tcp)
+		pkt.send(pkt_ip4, pkt_tcp)
 		return
 	end
 
 	if pkt_tcp.psh then
 		local fmt = "Banner from %s.%u: %s"
-		hype.print(fmt, src, sport, string.sub(pkt_raw.payload, 1, -2))
+		std.print(fmt, src, sport, string.sub(pkt_raw.payload, 1, -2))
 
 		pkt_tcp.syn     = false
 		pkt_tcp.psh     = false
@@ -76,7 +79,7 @@ function recv(pkts)
 		pkt_tcp.seq     = pkt_tcp.ack_seq
 		pkt_tcp.ack_seq = 0
 
-		hype.send(pkt_ip4, pkt_tcp)
+		pkt.send(pkt_ip4, pkt_tcp)
 		return true
 	end
 

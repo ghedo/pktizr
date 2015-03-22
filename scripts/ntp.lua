@@ -2,14 +2,16 @@
 
 local bin = require("hype.bin")
 local bit = require("hype.bit")
+local pkt = require("hype.pkt")
+local std = require("hype.std")
 
 -- NTP MONLIST
 local ntp_query = '\x17\x00\x03\x2a\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 
 -- template packets
-local pkt_ip4 = hype.IP({id=1, src=hype.local_addr})
-local pkt_udp = hype.UDP({sport=64434})
-local pkt_ntp = hype.Raw({payload=ntp_query})
+local pkt_ip4 = pkt.IP({id=1, src=std.get_addr()})
+local pkt_udp = pkt.UDP({sport=64434})
+local pkt_ntp = pkt.Raw({payload=ntp_query})
 
 function loop(addr, port)
 	pkt_ip4.dst = addr
@@ -46,6 +48,6 @@ function recv(pkts)
 	end
 
 	local fmt = "Received NTP reply from %s.%u: impl=%u, code=%u"
-	hype.print(fmt, pkt_ip4.src, pkt_udp.sport, impl, code)
+	std.print(fmt, pkt_ip4.src, pkt_udp.sport, impl, code)
 	return true
 end

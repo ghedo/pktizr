@@ -68,37 +68,16 @@ static int set_tcp(lua_State *L, struct tcp_hdr *tcp);
 static int get_raw(lua_State *L, struct raw_hdr *raw);
 static int set_raw(lua_State *L, struct raw_hdr *raw);
 
-static int hype_IP(lua_State *L);
-static int hype_ICMP(lua_State *L);
-static int hype_UDP(lua_State *L);
-static int hype_TCP(lua_State *L);
-static int hype_Raw(lua_State *L);
-static int hype_get_time(lua_State *L);
-static int hype_cookie16(lua_State *L);
-static int hype_cookie32(lua_State *L);
-static int hype_print(lua_State *L);
-static int hype_send(lua_State *L);
-
 LUALIB_API int luaopen_bit(lua_State *L);
 LUALIB_API int luaopen_compat53_string(lua_State *L);
-
-static const luaL_Reg hype_fns[] = {
-	{ "IP",       hype_IP       },
-	{ "ICMP",     hype_ICMP     },
-	{ "UDP",      hype_UDP      },
-	{ "TCP",      hype_TCP      },
-	{ "Raw",      hype_Raw      },
-	{ "get_time", hype_get_time },
-	{ "cookie16", hype_cookie16 },
-	{ "cookie32", hype_cookie32 },
-	{ "print",    hype_print    },
-	{ "send",     hype_send     },
-	{ NULL,       NULL          }
-};
+LUALIB_API int luaopen_pkt(lua_State *L);
+LUALIB_API int luaopen_std(lua_State *L);
 
 static const luaL_Reg hype_libs[] = {
 	{ "hype.bin", luaopen_compat53_string },
 	{ "hype.bit", luaopen_bit             },
+	{ "hype.pkt", luaopen_pkt             },
+	{ "hype.std", luaopen_std             },
 	{ NULL,       NULL                    }
 };
 
@@ -111,26 +90,13 @@ void *script_load(struct hype_args *args) {
 
 	luaL_openlibs(L);
 
-	lua_newtable(L);
-
 	for (int i = 0; hype_libs[i].name; i++) {
 		luaL_requiref(L, hype_libs[i].name, hype_libs[i].func, 1);
 		lua_pop(L, 1);
 	}
 
-	luaL_setfuncs(L, hype_fns, 0);
-
-	char local_addr_str[INET_ADDRSTRLEN];
-	uint32_t laddr = htonl(args->local_addr);
-	inet_ntop(AF_INET, &laddr, local_addr_str, sizeof(local_addr_str));
-
-	lua_pushstring(L, local_addr_str);
-	lua_setfield(L, -2, "local_addr");
-
 	lua_pushlightuserdata(L, args);
 	lua_setfield(L, LUA_REGISTRYINDEX, "args");
-
-	lua_setglobal(L, "hype");
 
 	assert(lua_gettop(L) == 0);
 
@@ -422,6 +388,24 @@ static int hype_cookie32(lua_State *L) {
 	return 1;
 }
 
+static int hype_get_addr(lua_State *L) {
+	struct hype_args *args;
+
+	char local_addr_str[INET_ADDRSTRLEN];
+	uint32_t laddr;
+
+	lua_getfield(L, LUA_REGISTRYINDEX, "args");
+	args = lua_touserdata(L, -1);
+
+	laddr = htonl(args->local_addr);
+	inet_ntop(AF_INET, &laddr, local_addr_str, sizeof(local_addr_str));
+
+	lua_pushstring(L, local_addr_str);
+
+	return 1;
+
+}
+
 static int hype_print(lua_State *L) {
 	luaL_checkstack(L, 1, "OOM");
 	lua_getglobal(L, "string");
@@ -448,6 +432,35 @@ static int hype_send(lua_State *L) {
 
 	lua_pushboolean(L, 1);
 
+	return 1;
+}
+
+LUALIB_API int luaopen_pkt(lua_State *L) {
+	luaL_Reg const funcs[] = {
+		{ "IP",       hype_IP       },
+		{ "ICMP",     hype_ICMP     },
+		{ "UDP",      hype_UDP      },
+		{ "TCP",      hype_TCP      },
+		{ "Raw",      hype_Raw      },
+		{ "cookie16", hype_cookie16 },
+		{ "cookie32", hype_cookie32 },
+		{ "send",     hype_send     },
+		{ NULL,       NULL          }
+	};
+
+	luaL_newlib(L, funcs);
+	return 1;
+}
+
+LUALIB_API int luaopen_std(lua_State *L) {
+	luaL_Reg const funcs[] = {
+		{ "get_time", hype_get_time },
+		{ "get_addr", hype_get_addr },
+		{ "print",    hype_print    },
+		{ NULL,       NULL          }
+	};
+
+	luaL_newlib(L, funcs);
 	return 1;
 }
 
