@@ -31,6 +31,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include <urcu/compiler.h>
+#include <urcu/uatomic.h>
+
 #include "bucket.h"
 #include "printf.h"
 #include "util.h"
@@ -48,12 +51,15 @@ bool bucket_consume(struct bucket *t) {
 	if (!t->rate)
 		return true;
 
-again:
-	now = time_now();
-	elapsed = (now - t->timestamp) / 1e6;
+	do {
+		now = time_now();
+		elapsed = (now - t->timestamp) / 1e6;
 
-	if ((elapsed * t->rate) < 1.0)
-		goto again;
+		if ((elapsed * t->rate) >= 1.0)
+			break;
+
+		caa_cpu_relax();
+	} while (1);
 
 	t->tokens += elapsed * t->rate;
 
