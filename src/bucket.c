@@ -31,7 +31,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include <urcu/compiler.h>
 #include <urcu/uatomic.h>
 
 #include "bucket.h"
@@ -46,22 +45,22 @@ void bucket_init(struct bucket *t, uint64_t rate) {
 
 bool bucket_consume(struct bucket *t) {
 	volatile uint64_t now;
-	volatile double elapsed;
+	volatile double tokens;
 
 	if (!t->rate)
 		return true;
 
 	do {
-		now = time_now();
-		elapsed = (now - t->timestamp) / 1e6;
+		now    = time_now();
+		tokens = ((now - t->timestamp) / 1e6) * t->rate;
 
-		if ((elapsed * t->rate) >= 1.0)
+		if (tokens >= 1.0)
 			break;
 
 		caa_cpu_relax();
 	} while (1);
 
-	t->tokens += elapsed * t->rate;
+	t->tokens += tokens;
 
 	if (t->tokens > t->rate)
 		t->tokens = t->rate;
