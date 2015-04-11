@@ -65,7 +65,7 @@ sent packets. However this makes writing scripts a little bit trickier.</p>
 <h2>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
 <p>Under the <a class="reference external" href="https://github.com/ghedo/hype/tree/master/scripts">scripts</a> directory you can find some example scripts. To
 run a script you need to specify a list of target hosts (e.g. <cite>192.168.1.0/24</cite>),
-a port range (e.g. <cite>0-65535</cite>) and obviously the script you want to run:</p>
+a port range (e.g. <cite>1-65535</cite>) and obviously the script you want to run:</p>
 <div class="highlight-python"><div class="highlight"><pre>$ sudo hype 192.168.1.0/24 -p 1 -S scripts/ping.lua
 </pre></div>
 </div>
@@ -74,22 +74,22 @@ network. The script simply sends out ICMP echo requests like the <cite>ping(8)</
 utility does, and can be used to discover active hosts from a set of IP ranges.</p>
 <p>The port range (specified with the <cite>-p</cite> option) is <cite>1</cite>, since we only want to
 send a single packet per host:</p>
-<div class="highlight-python"><div class="highlight"><pre>$ sudo hype 192.168.1.0/24 -p 0-65535 -S scripts/syn.lua
+<div class="highlight-python"><div class="highlight"><pre>$ sudo hype 192.168.1.0/24 -p 1-65535 -S scripts/syn.lua
 </pre></div>
 </div>
 <p>The <cite>syn.lua</cite> script sends out TCP SYN packets and can be used to discover open
-ports on target hosts. In this case the port range is <cite>0-65353</cite> which means all
+ports on target hosts. In this case the port range is <cite>1-65353</cite> which means all
 ports on the targets will be scanned.</p>
 <p>Note that by default hype sends packet at a rate of 100 packets per second, in
 order to avoid flooding the local network or the target hosts. You can specify a
 different value using the <cite>-r</cite> command-line option:</p>
-<div class="highlight-python"><div class="highlight"><pre>$ sudo hype 192.168.1.0/24 -p 0-65535 -S scripts/syn.lua -r 1000
+<div class="highlight-python"><div class="highlight"><pre>$ sudo hype 192.168.1.0/24 -p 1-65535 -S scripts/syn.lua -r 1000
 </pre></div>
 </div>
 <p>This will send 1000 packets per second instead. To disable rate limiting, the
 value <cite>0</cite> (which means &#8220;send packets as fast as possible&#8221;) can be used (<strong>use
 this option with caution</strong>):</p>
-<div class="highlight-python"><div class="highlight"><pre>$ sudo hype 192.168.1.0/24 -p 0-65535 -S scripts/syn.lua -r 0
+<div class="highlight-python"><div class="highlight"><pre>$ sudo hype 192.168.1.0/24 -p 1-65535 -S scripts/syn.lua -r 0
 </pre></div>
 </div>
 <p>See the <a class="reference external" href="https://ghedo.github.io/hype/hype.html">man page</a> for more information.</p>
@@ -98,7 +98,6 @@ this option with caution</strong>):</p>
 <h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><cite>liblua5.1/5.2/jit</cite></li>
-<li><cite>libpcap</cite></li>
 <li><cite>liburcu</cite></li>
 </ul>
 </div>

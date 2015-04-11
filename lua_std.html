@@ -47,7 +47,7 @@
             
   <div class="section" id="std-library">
 <span id="lua-std"></span><h1>std library<a class="headerlink" href="#std-library" title="Permalink to this headline">¶</a></h1>
-<p>The <em>std</em> library provides utility function for scripts. It can be imported
+<p>The <cite>std</cite> library provides utility function for scripts. It can be imported
 into a script as follows:</p>
 <div class="highlight-lua"><div class="highlight"><pre><span class="kd">local</span> <span class="n">std</span> <span class="o">=</span> <span class="nb">require</span><span class="p">(</span><span class="s2">&quot;</span><span class="s">hype.std&quot;</span><span class="p">)</span>
 </pre></div>
@@ -72,8 +72,9 @@ received packets.</p>
 <dl class="function">
 <dt id="print">
 <tt class="descname">print</tt><big>(</big><em>fmt</em>, <em>v1</em>, <em>v2</em>, <em>...</em><big>)</big><a class="headerlink" href="#print" title="Permalink to this definition">¶</a></dt>
-<dd><p>Prints a string containing the values v1, v2, etc. stringified according to
-the format string fmt.</p>
+<dd><p>Prints a string containing the values <cite>v1</cite>, <cite>v2</cite>, etc. stringified according
+to the format string fmt. The string is generated using the <cite>string.format()</cite>
+standard function. See the Lua <a class="reference external" href="http://www.lua.org/manual/5.3/manual.html#pdf-string.format">reference</a> for more information.</p>
 </dd></dl>
 
 </div>
