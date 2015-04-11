@@ -26,7 +26,7 @@ Getting Started
 
 Under the scripts_ directory you can find some example scripts. To
 run a script you need to specify a list of target hosts (e.g. `192.168.1.0/24`),
-a port range (e.g. `0-65535`) and obviously the script you want to run::
+a port range (e.g. `1-65535`) and obviously the script you want to run::
 
    $ sudo hype 192.168.1.0/24 -p 1 -S scripts/ping.lua
 
@@ -37,23 +37,23 @@ utility does, and can be used to discover active hosts from a set of IP ranges.
 The port range (specified with the `-p` option) is `1`, since we only want to
 send a single packet per host::
 
-   $ sudo hype 192.168.1.0/24 -p 0-65535 -S scripts/syn.lua
+   $ sudo hype 192.168.1.0/24 -p 1-65535 -S scripts/syn.lua
 
 The `syn.lua` script sends out TCP SYN packets and can be used to discover open
-ports on target hosts. In this case the port range is `0-65353` which means all
+ports on target hosts. In this case the port range is `1-65353` which means all
 ports on the targets will be scanned.
 
 Note that by default hype sends packet at a rate of 100 packets per second, in
 order to avoid flooding the local network or the target hosts. You can specify a
 different value using the `-r` command-line option::
 
-   $ sudo hype 192.168.1.0/24 -p 0-65535 -S scripts/syn.lua -r 1000
+   $ sudo hype 192.168.1.0/24 -p 1-65535 -S scripts/syn.lua -r 1000
 
 This will send 1000 packets per second instead. To disable rate limiting, the
 value `0` (which means "send packets as fast as possible") can be used (**use
 this option with caution**)::
 
-   $ sudo hype 192.168.1.0/24 -p 0-65535 -S scripts/syn.lua -r 0
+   $ sudo hype 192.168.1.0/24 -p 1-65535 -S scripts/syn.lua -r 0
 
 See the `man page`_ for more information.
 
