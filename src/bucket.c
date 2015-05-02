@@ -44,8 +44,8 @@ void bucket_init(struct bucket *t, uint64_t rate) {
 }
 
 bool bucket_consume(struct bucket *t) {
-	volatile uint64_t now;
-	volatile double tokens;
+	uint64_t now;
+	double tokens;
 
 	if (!t->rate)
 		return true;
