@@ -8,7 +8,7 @@ based on the bitop_ Lua library. It can be imported into a script as follows:
 
 .. code-block:: lua
 
-   local bit = require("hype.bit")
+   local bit = require("pktizr.bit")
 ..
 
 The provided functions can then be used by prepending `bit.` to the name (e.g.

@@ -28,7 +28,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-struct hype_args {
+struct pktizr_args {
 	struct range *targets;
 	struct range *ports;
 

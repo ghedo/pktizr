@@ -1,19 +1,19 @@
-.. _hype(1):
+.. _pktizr(1):
 
-hype
+pktizr
 ====
 
 SYNOPSIS
 --------
 
-.. program:: hype
+.. program:: pktizr
 
-**hype <targets> [options]**
+**pktizr <targets> [options]**
 
 DESCRIPTION
 -----------
 
-**hype** is a command-line packet generator and analyzer. It lets you generate
+**pktizr** is a command-line packet generator and analyzer. It lets you generate
 custom IP/ICMP/TCP/UDP packets, send them over the network and analyze replies
 using Lua scripts.
 

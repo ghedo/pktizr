@@ -1,9 +1,9 @@
 -- This script sends out ICMP echo requests and listens for matching replies
 -- like the ping(8) utility.
 
-local bin = require("hype.bin")
-local pkt = require("hype.pkt")
-local std = require("hype.std")
+local bin = require("pktizr.bin")
+local pkt = require("pktizr.pkt")
+local std = require("pktizr.std")
 
 -- template packets
 local local_addr = std.get_addr()

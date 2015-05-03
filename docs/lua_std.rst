@@ -8,7 +8,7 @@ into a script as follows:
 
 .. code-block:: lua
 
-   local std = require("hype.std")
+   local std = require("pktizr.std")
 ..
 
 The provided functions can then be used by prepending `std.` to the name (e.g.

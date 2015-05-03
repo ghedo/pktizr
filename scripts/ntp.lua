@@ -1,9 +1,9 @@
 -- This script sends out NTP requests and listens for matching replies.
 
-local bin = require("hype.bin")
-local bit = require("hype.bit")
-local pkt = require("hype.pkt")
-local std = require("hype.std")
+local bin = require("pktizr.bin")
+local bit = require("pktizr.bit")
+local pkt = require("pktizr.pkt")
+local std = require("pktizr.std")
 
 -- NTP MONLIST
 local ntp_query = '\x17\x00\x03\x2a\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'

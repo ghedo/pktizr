@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# hype documentation build configuration file, created by
+# pktizr documentation build configuration file, created by
 # sphinx-quickstart on Sun Mar 22 14:43:38 2015.
 #
 # This file is execfile()d with the current directory set to its
@@ -43,7 +43,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'hype'
+project = u'pktizr'
 copyright = u'2015, Alessandro Ghedini'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -176,7 +176,7 @@ html_static_path = ['_static']
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'hypedoc'
+htmlhelp_basename = 'pktizrdoc'
 
 
 # -- Options for manual page output ---------------------------------------
@@ -184,7 +184,7 @@ htmlhelp_basename = 'hypedoc'
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('hype', 'hype',
+    ('pktizr', 'pktizr',
      u'scriptable, asynchronous network packet generator/analyzer',
      [u'Alessandro Ghedini'], 1)
 ]

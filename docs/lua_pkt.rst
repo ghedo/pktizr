@@ -8,7 +8,7 @@ packets. It can be imported into a script as follows:
 
 .. code-block:: lua
 
-   local pkt = require("hype.pkt")
+   local pkt = require("pktizr.pkt")
 ..
 
 The provided functions can then be used by prepending `pkt.` to the name (e.g.

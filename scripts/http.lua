@@ -12,8 +12,8 @@
 -- connection is left open. The target will, at some point, realize that it's a
 -- dead connection anyway, but that may take some time.
 
-local pkt = require("hype.pkt")
-local std = require("hype.std")
+local pkt = require("pktizr.pkt")
+local std = require("pktizr.std")
 
 -- template packets
 local local_addr = std.get_addr()

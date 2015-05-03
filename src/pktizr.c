@@ -50,7 +50,7 @@
 #include "pkt.h"
 #include "printf.h"
 #include "util.h"
-#include "hype.h"
+#include "pktizr.h"
 #include "script.h"
 
 static const char *short_opts = "S:p:r:s:w:c:qh?";
@@ -75,7 +75,7 @@ static void *send_cb(void *p);
 static void *recv_cb(void *p);
 static void *loop_cb(void *p);
 
-static void status_line(struct hype_args *args);
+static void status_line(struct pktizr_args *args);
 static void setup_signals(void);
 
 static uint64_t get_entropy(void);
@@ -93,7 +93,7 @@ static inline void help(void);
 int main(int argc, char *argv[]) {
 	int rc, i;
 
-	_free_ struct hype_args *args = NULL;
+	_free_ struct pktizr_args *args = NULL;
 
 	if (argc < 4) {
 		help();
@@ -222,7 +222,7 @@ int main(int argc, char *argv[]) {
 }
 
 static void *send_cb(void *p) {
-	struct hype_args *args = p;
+	struct pktizr_args *args = p;
 
 	uint8_t *buf;
 	size_t   len;
@@ -236,7 +236,7 @@ static void *send_cb(void *p) {
 	args->pkt_sent  = 0;
 	args->pkt_probe = 0;
 
-	if (pthread_setname_np(pthread_self(), "hype: send"))
+	if (pthread_setname_np(pthread_self(), "pktizr: send"))
 		fail_printf("Error setting thread name");
 
 	pthread_mutex_lock(&args->send_mutex);
@@ -276,13 +276,13 @@ static void *send_cb(void *p) {
 }
 
 static void *recv_cb(void *p) {
-	struct hype_args *args = p;
+	struct pktizr_args *args = p;
 
 	void *L = script_load(args);
 
 	args->pkt_recv = 0;
 
-	if (pthread_setname_np(pthread_self(), "hype: recv"))
+	if (pthread_setname_np(pthread_self(), "pktizr: recv"))
 		fail_printf("Error setting thread name");
 
 	pthread_mutex_lock(&args->recv_mutex);
@@ -320,7 +320,7 @@ release:
 }
 
 static void *loop_cb(void *p) {
-	struct hype_args *args = p;
+	struct pktizr_args *args = p;
 
 	int rc;
 
@@ -335,7 +335,7 @@ static void *loop_cb(void *p) {
 
 	args->pkt_count = tot_cnt;
 
-	if (pthread_setname_np(pthread_self(), "hype: loop"))
+	if (pthread_setname_np(pthread_self(), "pktizr: loop"))
 		fail_printf("Error setting thread name");
 
 	printf("Scanning %zu ports on %zu hosts...\n", prt_cnt, tgt_cnt);
@@ -365,7 +365,7 @@ static void *loop_cb(void *p) {
 	return NULL;
 }
 
-static void status_line(struct hype_args *args) {
+static void status_line(struct pktizr_args *args) {
 	uint64_t tot      = args->pkt_count;
 	uint64_t now_old  = time_now();
 	uint64_t sent_old = args->pkt_sent;
@@ -458,7 +458,7 @@ static inline void help(void) {
 	#define CMD_HELP(CMDL, CMDS, MSG) printf("  %s, %-15s \t%s.\n", COLOR_YELLOW CMDS, CMDL COLOR_OFF, MSG);
 
 	printf(COLOR_RED "Usage: " COLOR_OFF);
-	printf(COLOR_GREEN "hype " COLOR_OFF);
+	printf(COLOR_GREEN "pktizr " COLOR_OFF);
 	puts("<targets> [options]\n");
 
 	puts(COLOR_RED " Options:" COLOR_OFF);

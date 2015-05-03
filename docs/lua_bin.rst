@@ -8,7 +8,7 @@ can be imported into a script as follows:
 
 .. code-block:: lua
 
-   local bin = require("hype.bin")
+   local bin = require("pktizr.bin")
 ..
 
 The provided functions can then be used by prepending `bin.` to the name (e.g.

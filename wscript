@@ -6,13 +6,13 @@ import re
 from waflib import Utils
 from waflib.Build import BuildContext
 
-APPNAME = 'hype'
+APPNAME = 'pktizr'
 VERSION = '0.0'
 
 _INSTALL_DIRS_LIST = [
 	('bindir',  '${DESTDIR}${PREFIX}/bin',      'binary files'),
 	('datadir', '${DESTDIR}${PREFIX}/share',    'data files'),
-	('docdir',  '${DATADIR}/doc/hype',          'documentation files'),
+	('docdir',  '${DATADIR}/doc/pktizr',          'documentation files'),
 	('mandir',  '${DATADIR}/man',               'man pages '),
 ]
 
@@ -141,7 +141,7 @@ def build(bld):
 	sources = [
 		# sources
 		( 'src/bucket.c'                           ),
-		( 'src/hype.c'                             ),
+		( 'src/pktizr.c'                             ),
 		( 'src/netdev.c',                          ),
 		( 'src/netdev_pcap.c',          'pcap'     ),
 		( 'src/netdev_sock.c',          'af_pkt'   ),
@@ -179,10 +179,10 @@ def build(bld):
 	bld.env.append_value('INCLUDES', ['deps', 'src'])
 
 	bld(
-		name         = 'hype',
+		name         = 'pktizr',
 		features     = 'c cprogram',
 		source       = filter_sources(bld, sources),
-		target       = 'hype',
+		target       = 'pktizr',
 		use          = bld.env.deps,
 		install_path = bld.env.BINDIR
 	)
@@ -203,9 +203,9 @@ def build(bld):
 			name   = 'man docs',
 			cwd    = 'docs',
 			rule   = 'sphinx-build -c ../build/docs/ -b man . ../build/docs/man',
-			source = bld.path.ant_glob('docs/hype.rst') +
+			source = bld.path.ant_glob('docs/pktizr.rst') +
 			         bld.path.ant_glob('build/docs/conf.py'),
-			target = 'docs/man/hype.1',
+			target = 'docs/man/pktizr.1',
 			install_path = bld.env.MANDIR
 		)
 

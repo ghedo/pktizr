@@ -47,9 +47,9 @@
 #include "pkt.h"
 #include "printf.h"
 #include "util.h"
-#include "hype.h"
+#include "pktizr.h"
 
-static struct pkt *get_pkt(lua_State *L, struct hype_args *args);
+static struct pkt *get_pkt(lua_State *L, struct pktizr_args *args);
 
 static int get_type(lua_State *L);
 
@@ -73,15 +73,15 @@ LUALIB_API int luaopen_compat53_string(lua_State *L);
 LUALIB_API int luaopen_pkt(lua_State *L);
 LUALIB_API int luaopen_std(lua_State *L);
 
-static const luaL_Reg hype_libs[] = {
-	{ "hype.bin", luaopen_compat53_string },
-	{ "hype.bit", luaopen_bit             },
-	{ "hype.pkt", luaopen_pkt             },
-	{ "hype.std", luaopen_std             },
+static const luaL_Reg pktizr_libs[] = {
+	{ "pktizr.bin", luaopen_compat53_string },
+	{ "pktizr.bit", luaopen_bit             },
+	{ "pktizr.pkt", luaopen_pkt             },
+	{ "pktizr.std", luaopen_std             },
 	{ NULL,       NULL                    }
 };
 
-void *script_load(struct hype_args *args) {
+void *script_load(struct pktizr_args *args) {
 	int rc;
 
 	lua_State *L = luaL_newstate();
@@ -90,8 +90,8 @@ void *script_load(struct hype_args *args) {
 
 	luaL_openlibs(L);
 
-	for (int i = 0; hype_libs[i].name; i++) {
-		luaL_requiref(L, hype_libs[i].name, hype_libs[i].func, 1);
+	for (int i = 0; pktizr_libs[i].name; i++) {
+		luaL_requiref(L, pktizr_libs[i].name, pktizr_libs[i].func, 1);
 		lua_pop(L, 1);
 	}
 
@@ -127,7 +127,7 @@ void script_close(void *L) {
 	lua_close(L);
 }
 
-int script_loop(void *L, struct hype_args *args,
+int script_loop(void *L, struct pktizr_args *args,
                 uint32_t daddr, uint16_t dport) {
 	int rc;
 
@@ -172,7 +172,7 @@ error:
 	return -1;
 }
 
-int script_recv(void *L, struct hype_args *args, struct pkt *pkt) {
+int script_recv(void *L, struct pktizr_args *args, struct pkt *pkt) {
 	int rc, n = 1;
 
 	struct pkt *cur;
@@ -259,7 +259,7 @@ error:
 	return -1;
 }
 
-static int hype_IP(lua_State *L) {
+static int pktizr_IP(lua_State *L) {
 	if ((lua_gettop(L) == 0) || !lua_istable(L, -1))
 		luaL_error(L, "Invalid argument");
 
@@ -275,7 +275,7 @@ static int hype_IP(lua_State *L) {
 	return 1;
 }
 
-static int hype_ICMP(lua_State *L) {
+static int pktizr_ICMP(lua_State *L) {
 	if ((lua_gettop(L) != 1) || !lua_istable(L, -1))
 		luaL_error(L, "Invalid argument");
 
@@ -289,7 +289,7 @@ static int hype_ICMP(lua_State *L) {
 	return 1;
 }
 
-static int hype_UDP(lua_State *L) {
+static int pktizr_UDP(lua_State *L) {
 	if ((lua_gettop(L) != 1) || !lua_istable(L, -1))
 		luaL_error(L, "Invalid argument");
 
@@ -301,7 +301,7 @@ static int hype_UDP(lua_State *L) {
 	return 1;
 }
 
-static int hype_TCP(lua_State *L) {
+static int pktizr_TCP(lua_State *L) {
 	if ((lua_gettop(L) != 1) || !lua_istable(L, -1))
 		luaL_error(L, "Invalid argument");
 
@@ -316,7 +316,7 @@ static int hype_TCP(lua_State *L) {
 	return 1;
 }
 
-static int hype_Raw(lua_State *L) {
+static int pktizr_Raw(lua_State *L) {
 	if ((lua_gettop(L) != 1) || !lua_istable(L, -1))
 		luaL_error(L, "Invalid argument");
 
@@ -330,15 +330,15 @@ static int hype_Raw(lua_State *L) {
 	return 1;
 }
 
-static int hype_get_time(lua_State *L) {
+static int pktizr_get_time(lua_State *L) {
 	double now = (double) time_now() / 1e6;
 	lua_pushnumber(L, now);
 
 	return 1;
 }
 
-static uint64_t hype_cookie(lua_State *L) {
-	struct hype_args *args;
+static uint64_t pktizr_cookie(lua_State *L) {
+	struct pktizr_args *args;
 
 	uint16_t dport, sport;
 	struct in_addr daddr, saddr;
@@ -374,22 +374,22 @@ static uint64_t hype_cookie(lua_State *L) {
 	return pkt_cookie(saddr.s_addr, daddr.s_addr, sport, dport, args->seed);
 }
 
-static int hype_cookie16(lua_State *L) {
-	uint64_t cookie = hype_cookie(L);
+static int pktizr_cookie16(lua_State *L) {
+	uint64_t cookie = pktizr_cookie(L);
 	lua_pushnumber(L, (uint16_t) cookie);
 
 	return 1;
 }
 
-static int hype_cookie32(lua_State *L) {
-	uint64_t cookie = hype_cookie(L);
+static int pktizr_cookie32(lua_State *L) {
+	uint64_t cookie = pktizr_cookie(L);
 	lua_pushnumber(L, (uint32_t) cookie);
 
 	return 1;
 }
 
-static int hype_get_addr(lua_State *L) {
-	struct hype_args *args;
+static int pktizr_get_addr(lua_State *L) {
+	struct pktizr_args *args;
 
 	char local_addr_str[INET_ADDRSTRLEN];
 	uint32_t laddr;
@@ -406,7 +406,7 @@ static int hype_get_addr(lua_State *L) {
 
 }
 
-static int hype_print(lua_State *L) {
+static int pktizr_print(lua_State *L) {
 	luaL_checkstack(L, 1, "OOM");
 	lua_getglobal(L, "string");
 	lua_getfield(L, -1, "format");
@@ -418,8 +418,8 @@ static int hype_print(lua_State *L) {
 	return 0;
 }
 
-static int hype_send(lua_State *L) {
-	struct hype_args *args = NULL;
+static int pktizr_send(lua_State *L) {
+	struct pktizr_args *args = NULL;
 
 	lua_getfield(L, LUA_REGISTRYINDEX, "args");
 	args = lua_touserdata(L, -1);
@@ -437,14 +437,14 @@ static int hype_send(lua_State *L) {
 
 LUALIB_API int luaopen_pkt(lua_State *L) {
 	luaL_Reg const funcs[] = {
-		{ "IP",       hype_IP       },
-		{ "ICMP",     hype_ICMP     },
-		{ "UDP",      hype_UDP      },
-		{ "TCP",      hype_TCP      },
-		{ "Raw",      hype_Raw      },
-		{ "cookie16", hype_cookie16 },
-		{ "cookie32", hype_cookie32 },
-		{ "send",     hype_send     },
+		{ "IP",       pktizr_IP       },
+		{ "ICMP",     pktizr_ICMP     },
+		{ "UDP",      pktizr_UDP      },
+		{ "TCP",      pktizr_TCP      },
+		{ "Raw",      pktizr_Raw      },
+		{ "cookie16", pktizr_cookie16 },
+		{ "cookie32", pktizr_cookie32 },
+		{ "send",     pktizr_send     },
 		{ NULL,       NULL          }
 	};
 
@@ -454,9 +454,9 @@ LUALIB_API int luaopen_pkt(lua_State *L) {
 
 LUALIB_API int luaopen_std(lua_State *L) {
 	luaL_Reg const funcs[] = {
-		{ "get_time", hype_get_time },
-		{ "get_addr", hype_get_addr },
-		{ "print",    hype_print    },
+		{ "get_time", pktizr_get_time },
+		{ "get_addr", pktizr_get_addr },
+		{ "print",    pktizr_print    },
 		{ NULL,       NULL          }
 	};
 
@@ -464,7 +464,7 @@ LUALIB_API int luaopen_std(lua_State *L) {
 	return 1;
 }
 
-static struct pkt *get_pkt(lua_State *L, struct hype_args *args) {
+static struct pkt *get_pkt(lua_State *L, struct pktizr_args *args) {
 	struct pkt *pkt = NULL;
 
 	while (lua_gettop(L) != 0) {

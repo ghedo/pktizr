@@ -1,8 +1,8 @@
 -- This script sends out TCP SYN packets and listens for matching replies. It
 -- can be used to perform a port scan on the target hosts.
 
-local pkt = require("hype.pkt")
-local std = require("hype.std")
+local pkt = require("pktizr.pkt")
+local std = require("pktizr.std")
 
 -- template packets
 local local_addr = std.get_addr()

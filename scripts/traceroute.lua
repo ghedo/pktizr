@@ -2,8 +2,8 @@
 -- requests. It is recommended to use this with a single target address, or the
 -- output will be pretty confusing.
 
-local pkt = require("hype.pkt")
-local std = require("hype.std")
+local pkt = require("pktizr.pkt")
+local std = require("pktizr.std")
 
 -- template packets
 local local_addr = std.get_addr()
