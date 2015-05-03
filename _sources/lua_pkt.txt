@@ -3,12 +3,12 @@
 pkt library
 -----------
 
-The *pkt* library provides function for accessing and manipulating network
+The `pkt` library provides function for accessing and manipulating network
 packets. It can be imported into a script as follows:
 
 .. code-block:: lua
 
-   local pkt = require("hype.pkt")
+   local pkt = require("pktizr.pkt")
 ..
 
 The provided functions can then be used by prepending `pkt.` to the name (e.g.
@@ -32,4 +32,5 @@ Functions
 .. function:: send(p1, p2, ...)
 
    Packs and sneds the given packets on the network. The packets are stacked
-   from left to right: p1 is stacked on the lower level, p2 on top of p1, etc.
+   from left to right: `p1` is stacked on the lower level, `p2` on top of `p1`,
+   etc.

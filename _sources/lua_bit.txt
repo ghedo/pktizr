@@ -3,12 +3,12 @@
 bit library
 -----------
 
-The *bit* library provides function for bitwise operations on numbers, and is
+The `bit` library provides function for bitwise operations on numbers, and is
 based on the bitop_ Lua library. It can be imported into a script as follows:
 
 .. code-block:: lua
 
-   local bit = require("hype.bit")
+   local bit = require("pktizr.bit")
 ..
 
 The provided functions can then be used by prepending `bit.` to the name (e.g.
@@ -26,8 +26,8 @@ Functions
    Converts its first argument to a hex string. The number of hex digits is
    given by the absolute value of the optional second argument. Positive numbers
    between 1 and 8 generate lowercase hex digits. Negative numbers generate
-   uppercase hex digits. Only the least-significant 4*|n| bits are used. The
-   default is to generate 8 lowercase hex digits.
+   uppercase hex digits. Only the least-significant `4 * \|n\|` bits are used.
+   The default is to generate 8 lowercase hex digits.
 
 .. function:: bnot(x)
 
@@ -35,20 +35,17 @@ Functions
 
 .. function:: bor(x1 [,x2...])
 
-   Returns the bitwise or of all of its arguments. Note that more than two
-   arguments are allowed.
+   Returns the bitwise or of all of its arguments.
 
 .. function:: band(x1 [,x2...])
 
-   Returns the bitwise and of all of its arguments. Note that more than two
-   arguments are allowed.
+   Returns the bitwise and of all of its arguments.
 
 .. function:: bxor(x1 [,x2...])
 
-   Returns the bitwise xor of all of its arguments. Note that more than two
-   arguments are allowed.
+   Returns the bitwise xor of all of its arguments.
 
-.. function:: lshift(x, n)
+.. function:: lshift(x, )
 .. function:: rshift(x, n)
 .. function:: arshift(x, n)
 
