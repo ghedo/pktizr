@@ -1,7 +1,7 @@
 .. _pktizr(1):
 
 pktizr
-====
+======
 
 SYNOPSIS
 --------

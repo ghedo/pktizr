@@ -66,7 +66,7 @@ sent packets. However this makes writing scripts a little bit trickier.</p>
 <p>Under the <a class="reference external" href="https://github.com/ghedo/pktizr/tree/master/scripts">scripts</a> directory you can find some example scripts. To
 run a script you need to specify a list of target hosts (e.g. <cite>192.168.1.0/24</cite>),
 a port range (e.g. <cite>1-65535</cite>) and obviously the script you want to run:</p>
-<div class="highlight-python"><div class="highlight"><pre>$ sudo pktizr 192.168.1.0/24 -p 1 -S scripts/ping.lua
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>sudo pktizr 192.168.1.0/24 -p <span class="m">1</span> -S scripts/ping.lua
 </pre></div>
 </div>
 <p>This will run the <cite>ping.lua</cite> script against all the hosts on the 192.168.0/24
@@ -74,7 +74,7 @@ network. The script simply sends out ICMP echo requests like the <cite>ping(8)</
 utility does, and can be used to discover active hosts from a set of IP ranges.</p>
 <p>The port range (specified with the <cite>-p</cite> option) is <cite>1</cite>, since we only want to
 send a single packet per host:</p>
-<div class="highlight-python"><div class="highlight"><pre>$ sudo pktizr 192.168.1.0/24 -p 1-65535 -S scripts/syn.lua
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>sudo pktizr 192.168.1.0/24 -p 1-65535 -S scripts/syn.lua
 </pre></div>
 </div>
 <p>The <cite>syn.lua</cite> script sends out TCP SYN packets and can be used to discover open
@@ -83,13 +83,13 @@ ports on the targets will be scanned.</p>
 <p>Note that by default pktizr sends packet at a rate of 100 packets per second, in
 order to avoid flooding the local network or the target hosts. You can specify a
 different value using the <cite>-r</cite> command-line option:</p>
-<div class="highlight-python"><div class="highlight"><pre>$ sudo pktizr 192.168.1.0/24 -p 1-65535 -S scripts/syn.lua -r 1000
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>sudo pktizr 192.168.1.0/24 -p 1-65535 -S scripts/syn.lua -r 1000
 </pre></div>
 </div>
 <p>This will send 1000 packets per second instead. To disable rate limiting, the
 value <cite>0</cite> (which means &#8220;send packets as fast as possible&#8221;) can be used (<strong>use
 this option with caution</strong>):</p>
-<div class="highlight-python"><div class="highlight"><pre>$ sudo pktizr 192.168.1.0/24 -p 1-65535 -S scripts/syn.lua -r 0
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>sudo pktizr 192.168.1.0/24 -p 1-65535 -S scripts/syn.lua -r 0
 </pre></div>
 </div>
 <p>See the <a class="reference external" href="https://ghedo.github.io/pktizr/pktizr.html">man page</a> for more information.</p>
@@ -103,19 +103,19 @@ this option with caution</strong>):</p>
 </div>
 <div class="section" id="building">
 <h2>Building<a class="headerlink" href="#building" title="Permalink to this headline">¶</a></h2>
-<p>pktizr is distributed as source code. Install with:</p>
-<div class="highlight-python"><div class="highlight"><pre>$ ./bootstrap.py
-$ ./waf configure
-$ ./waf build
+<p>pktizr is distributed as source code. Build with:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>./bootstrap.py
+<span class="nv">$ </span>./waf configure
+<span class="nv">$ </span>./waf build
 </pre></div>
 </div>
 </div>
 <div class="section" id="fuzzing">
 <h2>Fuzzing<a class="headerlink" href="#fuzzing" title="Permalink to this headline">¶</a></h2>
 <p>pktizr&#8217;s packet decoder can be tested by using the afl fuzzer as follows:</p>
-<div class="highlight-python"><div class="highlight"><pre>$ CC=afl-gcc ./waf configure --sanitize=address
-$ ./waf build_fuzz
-$ afl-fuzz -i tests/ -o results/ -m none build/pkt_fuzz @@
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ CC</span><span class="o">=</span>afl-gcc ./waf configure --sanitize<span class="o">=</span>address
+<span class="nv">$ </span>./waf build_fuzz
+<span class="nv">$ </span>afl-fuzz -i tests/ -o results/ -m none build/pkt_fuzz @@
 </pre></div>
 </div>
 </div>
