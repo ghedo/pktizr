@@ -26,7 +26,9 @@ Getting Started
 
 Under the scripts_ directory you can find some example scripts. To
 run a script you need to specify a list of target hosts (e.g. `192.168.1.0/24`),
-a port range (e.g. `1-65535`) and obviously the script you want to run::
+a port range (e.g. `1-65535`) and obviously the script you want to run:
+
+.. code-block:: bash
 
    $ sudo pktizr 192.168.1.0/24 -p 1 -S scripts/ping.lua
 
@@ -35,7 +37,9 @@ network. The script simply sends out ICMP echo requests like the `ping(8)`
 utility does, and can be used to discover active hosts from a set of IP ranges.
 
 The port range (specified with the `-p` option) is `1`, since we only want to
-send a single packet per host::
+send a single packet per host:
+
+.. code-block:: bash
 
    $ sudo pktizr 192.168.1.0/24 -p 1-65535 -S scripts/syn.lua
 
@@ -45,13 +49,17 @@ ports on the targets will be scanned.
 
 Note that by default pktizr sends packet at a rate of 100 packets per second, in
 order to avoid flooding the local network or the target hosts. You can specify a
-different value using the `-r` command-line option::
+different value using the `-r` command-line option:
+
+.. code-block:: bash
 
    $ sudo pktizr 192.168.1.0/24 -p 1-65535 -S scripts/syn.lua -r 1000
 
 This will send 1000 packets per second instead. To disable rate limiting, the
 value `0` (which means "send packets as fast as possible") can be used (**use
-this option with caution**)::
+this option with caution**):
+
+.. code-block:: bash
 
    $ sudo pktizr 192.168.1.0/24 -p 1-65535 -S scripts/syn.lua -r 0
 
@@ -66,7 +74,9 @@ Dependencies
 Building
 --------
 
-pktizr is distributed as source code. Install with::
+pktizr is distributed as source code. Build with:
+
+.. code-block:: bash
 
    $ ./bootstrap.py
    $ ./waf configure
@@ -75,7 +85,9 @@ pktizr is distributed as source code. Install with::
 Fuzzing
 -------
 
-pktizr's packet decoder can be tested by using the afl fuzzer as follows::
+pktizr's packet decoder can be tested by using the afl fuzzer as follows:
+
+.. code-block:: bash
 
    $ CC=afl-gcc ./waf configure --sanitize=address
    $ ./waf build_fuzz
