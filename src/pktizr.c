@@ -66,6 +66,7 @@ static struct option long_opts[] = {
 	{ "count",       required_argument, NULL, 'c' },
 
 	{ "local-addr",  required_argument, NULL, 'l' },
+	{ "gateway-addr",required_argument, NULL, 'g' },
 
 	{ "quiet",       no_argument,       NULL, 'q' },
 
@@ -98,6 +99,7 @@ int main(int argc, char *argv[]) {
 	_free_ struct pktizr_args *args = NULL;
 
 	_free_ char *local_addr = NULL;
+	_free_ char *gateway_addr = NULL;
 
 	if (argc < 4) {
 		help();
@@ -163,6 +165,11 @@ int main(int argc, char *argv[]) {
 			local_addr = strdup(optarg);
 			break;
 
+		case 'g':
+			freep(&gateway_addr);
+			gateway_addr = strdup(optarg);
+			break;
+
 		case 'q':
 			args->quiet = true;
 			break;
@@ -184,7 +191,10 @@ int main(int argc, char *argv[]) {
 	if (rc < 0)
 		fail_printf("Error getting routes");
 
-	args->gateway_addr = ntohl(route.gate_addr);
+	if (gateway_addr)
+		args->local_addr = ntohl(inet_addr(gateway_addr));
+	else
+		args->gateway_addr = ntohl(route.gate_addr);
 
 	rc = resolve_ifname_to_mac(route.if_name, args->local_mac);
 	if (rc < 0)

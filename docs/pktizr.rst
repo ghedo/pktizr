@@ -50,6 +50,11 @@ Specify the source IP address. This value can be accessed by scripts using the
 :func:`get_addr` function. By default the configured address of the network
 interface will be used.
 
+.. option:: -g, --gateway-addr=<addr>
+
+Specify the gateway IP address. By default the configured address of the network
+interface's default route will be used.
+
 .. option:: -q, --quiet
 
 Don't show the status line.
