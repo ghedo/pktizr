@@ -53,7 +53,7 @@
 #include "pktizr.h"
 #include "script.h"
 
-static const char *short_opts = "S:p:r:s:w:c:qh?";
+static const char *short_opts = "S:p:r:s:w:c:l:g:qh?";
 
 static bool stop = false;
 
@@ -494,6 +494,9 @@ static inline void help(void) {
 	CMD_HELP("--wait",  "-w", "Wait the given amount of seconds after the scan is complete");
 	CMD_HELP("--count", "-c", "Send the given amount of duplicate packets");
 	CMD_HELP("--quiet", "-q", "Don't show the status line");
+
+	CMD_HELP("--local-addr", "-l", "Use the given IP address as source");
+	CMD_HELP("--gateway-addr", "-g", "Route the packets to the given gateway");
 
 	puts("");
 
