@@ -127,7 +127,7 @@ void script_close(void *L) {
 	lua_close(L);
 }
 
-int script_loop(void *L, struct pktizr_args *args,
+int script_loop(void *L, struct pktizr_args *args, struct pkt **pkt,
                 uint32_t daddr, uint16_t dport) {
 	int rc;
 
@@ -158,12 +158,9 @@ int script_loop(void *L, struct pktizr_args *args,
 		fail_printf("Error running script: %s", err);
 	}
 
-	struct pkt *pkt = get_pkt(L, args);
-	pkt->probe = true;
+	*pkt = get_pkt(L, args);
 
 	assert(lua_gettop(L) == 0);
-
-	queue_enqueue(&args->queue_head, &args->queue_tail, &pkt->queue);
 
 	return 0;
 

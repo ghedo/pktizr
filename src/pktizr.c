@@ -74,7 +74,6 @@ static struct option long_opts[] = {
 	{ 0, 0, 0, 0 }
 };
 
-static void *send_cb(void *p);
 static void *recv_cb(void *p);
 static void *loop_cb(void *p);
 
@@ -219,19 +218,16 @@ int main(int argc, char *argv[]) {
 	queue_init(&args->queue_head, &args->queue_tail);
 
 	START_THREAD(recv_mutex, recv_started, recv_thread, recv_cb, args);
-	START_THREAD(send_mutex, send_started, send_thread, send_cb, args);
 	START_THREAD(loop_mutex, loop_started, loop_thread, loop_cb, args);
 
 	setup_signals();
 
 	status_line(args);
 
-	pthread_join(args->loop_thread, NULL);
-
 	args->done = true;
 
 	pthread_join(args->recv_thread, NULL);
-	pthread_join(args->send_thread, NULL);
+	pthread_join(args->loop_thread, NULL);
 
 	args->netdev->close(args->netdev);
 
@@ -240,60 +236,6 @@ int main(int argc, char *argv[]) {
 	free(args->script);
 
 	return 0;
-}
-
-static void *send_cb(void *p) {
-	struct pktizr_args *args = p;
-
-	uint8_t *buf;
-	size_t   len;
-
-	struct pkt *pkt;
-	struct queue_node *node;
-
-	struct bucket bucket;
-	bucket_init(&bucket, args->rate);
-
-	args->pkt_sent  = 0;
-	args->pkt_probe = 0;
-
-	if (pthread_setname_np(pthread_self(), "pktizr: send"))
-		fail_printf("Error setting thread name");
-
-	pthread_mutex_lock(&args->send_mutex);
-	pthread_cond_signal(&args->send_started);
-	pthread_mutex_unlock(&args->send_mutex);
-
-	while (!args->done) {
-		bucket_consume(&bucket);
-
-		while (!args->done && (!args->rate || bucket.tokens >= 1.0)) {
-			node = queue_dequeue(&args->queue_head,
-			                     &args->queue_tail);
-			if (!node) break;
-
-			pkt = caa_container_of(node, struct pkt, queue);
-
-			buf = args->netdev->get_buf(args->netdev, &len);
-
-			int pkt_len = pkt_pack(buf, len, pkt);
-			if (pkt_len < 0)
-				goto done;
-
-			args->netdev->inject(args->netdev, buf, pkt_len);
-			args->pkt_sent++;
-
-			bucket.tokens--;
-
-			if (pkt->probe)
-				args->pkt_probe++;
-
-		done:
-			pkt_free(pkt);
-		}
-	}
-
-	return NULL;
 }
 
 static void *recv_cb(void *p) {
@@ -340,10 +282,31 @@ release:
 	return NULL;
 }
 
+int pkt_send(struct pktizr_args *args, struct pkt *pkt) {
+	uint8_t *buf;
+	size_t   len;
+
+	buf = args->netdev->get_buf(args->netdev, &len);
+
+	int pkt_len = pkt_pack(buf, len, pkt);
+	if (pkt_len < 0)
+		return -1;
+
+	args->netdev->inject(args->netdev, buf, pkt_len);
+	args->pkt_sent++;
+
+	return 0;
+}
+
 static void *loop_cb(void *p) {
 	struct pktizr_args *args = p;
 
 	int rc;
+
+	size_t i = 0;
+
+	struct pkt *pkt;
+	struct queue_node *node;
 
 	void *L = script_load(args);
 
@@ -355,6 +318,8 @@ static void *loop_cb(void *p) {
 	bucket_init(&bucket, args->rate);
 
 	args->pkt_count = tot_cnt;
+	args->pkt_sent  = 0;
+	args->pkt_probe = 0;
 
 	if (pthread_setname_np(pthread_self(), "pktizr: loop"))
 		fail_printf("Error setting thread name");
@@ -366,19 +331,46 @@ static void *loop_cb(void *p) {
 	pthread_mutex_unlock(&args->loop_mutex);
 
 	/* TODO: randomize targets */
-	for (size_t i = 0; i < tot_cnt && !args->stop; i++) {
+	while (!args->done) {
+		uint32_t daddr;
+		uint16_t dport;
+
 		bucket_consume(&bucket);
 
-		uint32_t daddr = range_list_pick(args->targets,
-		                              (i % tgt_cnt) / args->count);
-		uint16_t dport = range_list_pick(args->ports,
-		                              (i / tgt_cnt) / args->count);
+		node = queue_dequeue(&args->queue_head,
+				     &args->queue_tail);
+		if (!node)
+			goto script;
 
-		rc = script_loop(L, args, daddr, dport);
+		pkt = caa_container_of(node, struct pkt, queue);
+
+		pkt_send(args, pkt);
+
+		bucket.tokens--;
+		goto done;
+
+script:
+		if ((i >= tot_cnt) || args->stop)
+			continue;
+
+		daddr = range_list_pick(args->targets,
+		                        (i % tgt_cnt) / args->count);
+		dport = range_list_pick(args->ports,
+		                        (i / tgt_cnt) / args->count);
+
+		i++;
+
+		rc = script_loop(L, args, &pkt, daddr, dport);
 		if (rc < 0)
 			continue;
 
+		pkt_send(args, pkt);
+
+		args->pkt_probe++;
 		bucket.tokens--;
+
+done:
+		pkt_free(pkt);
 	}
 
 	script_close(L);

@@ -46,10 +46,6 @@ struct pktizr_args {
 	uint64_t wait;
 	uint64_t count;
 
-	pthread_t       send_thread;
-	pthread_mutex_t send_mutex;
-	pthread_cond_t  send_started;
-
 	pthread_t       recv_thread;
 	pthread_mutex_t recv_mutex;
 	pthread_cond_t  recv_started;
