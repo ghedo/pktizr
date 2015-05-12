@@ -65,6 +65,8 @@ static struct option long_opts[] = {
 	{ "wait",        required_argument, NULL, 'w' },
 	{ "count",       required_argument, NULL, 'c' },
 
+	{ "local-addr",  required_argument, NULL, 'l' },
+
 	{ "quiet",       no_argument,       NULL, 'q' },
 
 	{ "help",        no_argument,       NULL, 'h' },
@@ -94,6 +96,8 @@ int main(int argc, char *argv[]) {
 	int rc, i;
 
 	_free_ struct pktizr_args *args = NULL;
+
+	_free_ char *local_addr = NULL;
 
 	if (argc < 4) {
 		help();
@@ -154,6 +158,11 @@ int main(int argc, char *argv[]) {
 				fail_printf("Invalid wait value");
 			break;
 
+		case 'l':
+			freep(&local_addr);
+			local_addr = strdup(optarg);
+			break;
+
 		case 'q':
 			args->quiet = true;
 			break;
@@ -181,9 +190,13 @@ int main(int argc, char *argv[]) {
 	if (rc < 0)
 		fail_printf("Error resolving local MAC");
 
-	rc = resolve_ifname_to_ip(route.if_name, &args->local_addr);
-	if (rc < 0)
-		fail_printf("Error resolving local IP");
+	if (local_addr) {
+		args->local_addr = ntohl(inet_addr(local_addr));
+	} else {
+		rc = resolve_ifname_to_ip(route.if_name, &args->local_addr);
+		if (rc < 0)
+			fail_printf("Error resolving local IP");
+	}
 
 	args->netdev = netdev_open(route.if_name);
 	if (!args->netdev)
