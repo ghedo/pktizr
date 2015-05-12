@@ -63,6 +63,25 @@ this option with caution**):
 
    $ sudo pktizr 192.168.1.0/24 -p 1-65535 -S scripts/syn.lua -r 0
 
+Scripts can do more than simply sending out single packets, they can also
+complete TCP connections and interact with applications on the target hosts.
+
+However, since pktizr and the local system's networking stack are independent,
+they can interfere with each other. For example when the local system receives
+a TCP SYN+ACK packet from a remote target, it automatically responds with a RST
+packet that will kill the connection before pktizr can do anything with it.
+
+Because of this, it's recommended to assign to pktizr a separate IP address
+using the `--local-addr` option:
+
+.. code-block:: bash
+
+   $ sudo pktizr 192.168.1.0/24 -p 80 -S scripts/http.lua -l 192.168.1.123
+
+This value will be then accessible to scripts via the Lua API. Note that the
+address chosen must be on the same local subnet and not used by any other
+system.
+
 See the `man page`_ for more information.
 
 Dependencies

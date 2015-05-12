@@ -4,8 +4,9 @@
 -- protocols like FTP, SMTP, POP3, IMAP, SSH, ...
 --
 -- Note that on Linux, the kernel will automatically send out a TCP RST packet
--- when the target SYN+ACK is received, ruining everything. You'll need to
--- filter outgoing RST packets with iptables like so:
+-- when the target SYN+ACK is received, ruining everything. It's recommended
+-- to use pktzir's --local-addr option to change the source IP address, or in
+-- alternative outgoing RST packets can be filtered with iptables like so:
 --
 --   iptables -A OUTPUT -p tcp --tcp-flags RST RST -j DROP
 --
