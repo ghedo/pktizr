@@ -184,8 +184,6 @@ int main(int argc, char *argv[]) {
 	if (!args->script)
 		fail_printf("No script provided");
 
-	/* TODO: make local_addr/mac, gateway_addr/mac configurable */
-
 	struct route route;
 	rc = routes_get_default(&route);
 	if (rc < 0)
