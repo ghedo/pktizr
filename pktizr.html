@@ -92,6 +92,21 @@ using Lua scripts.</p>
 
 <p>Send the given amount of duplicate packets [default: 1].</p>
 <dl class="option">
+<dt id="cmdoption-pktizr-l">
+<span id="cmdoption-pktizr--local-addr"></span><tt class="descname">-l</tt><tt class="descclassname"></tt><tt class="descclassname">, </tt><tt class="descname">--local-addr</tt><tt class="descclassname">=&lt;addr&gt;</tt><a class="headerlink" href="#cmdoption-pktizr-l" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Specify the source IP address. This value can be accessed by scripts using the
+<a class="reference internal" href="lua_std.html#get_addr" title="get_addr"><tt class="xref py py-func docutils literal"><span class="pre">get_addr()</span></tt></a> function. By default the configured address of the network
+interface will be used.</p>
+<dl class="option">
+<dt id="cmdoption-pktizr-g">
+<span id="cmdoption-pktizr--gateway-addr"></span><tt class="descname">-g</tt><tt class="descclassname"></tt><tt class="descclassname">, </tt><tt class="descname">--gateway-addr</tt><tt class="descclassname">=&lt;addr&gt;</tt><a class="headerlink" href="#cmdoption-pktizr-g" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Specify the gateway IP address. By default the configured address of the network
+interface&#8217;s default route will be used.</p>
+<dl class="option">
 <dt id="cmdoption-pktizr-q">
 <span id="cmdoption-pktizr--quiet"></span><tt class="descname">-q</tt><tt class="descclassname"></tt><tt class="descclassname">, </tt><tt class="descname">--quiet</tt><tt class="descclassname"></tt><a class="headerlink" href="#cmdoption-pktizr-q" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>

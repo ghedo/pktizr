@@ -92,6 +92,20 @@ this option with caution</strong>):</p>
 <div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>sudo pktizr 192.168.1.0/24 -p 1-65535 -S scripts/syn.lua -r 0
 </pre></div>
 </div>
+<p>Scripts can do more than simply sending out single packets, they can also
+complete TCP connections and interact with applications on the target hosts.</p>
+<p>However, since pktizr and the local system&#8217;s networking stack are independent,
+they can interfere with each other. For example when the local system receives
+a TCP SYN+ACK packet from a remote target, it automatically responds with a RST
+packet that will kill the connection before pktizr can do anything with it.</p>
+<p>Because of this, it&#8217;s recommended to assign to pktizr a separate IP address
+using the <cite>&#8211;local-addr</cite> option:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>sudo pktizr 192.168.1.0/24 -p <span class="m">80</span> -S scripts/http.lua -l 192.168.1.123
+</pre></div>
+</div>
+<p>This value will be then accessible to scripts via the Lua API. Note that the
+address chosen must be on the same local subnet and not used by any other
+system.</p>
 <p>See the <a class="reference external" href="https://ghedo.github.io/pktizr/pktizr.html">man page</a> for more information.</p>
 </div>
 <div class="section" id="dependencies">
