@@ -215,7 +215,7 @@ int main(int argc, char *argv[]) {
 	if (rc < 0)
 		fail_printf("Error resolving local MAC");
 
-	queue_init(&args->queue_head, &args->queue_tail);
+	queue_init(&args->queue);
 
 	START_THREAD(recv_mutex, recv_started, recv_thread, recv_cb, args);
 	START_THREAD(loop_mutex, loop_started, loop_thread, loop_cb, args);
@@ -337,8 +337,7 @@ static void *loop_cb(void *p) {
 
 		bucket_consume(&bucket);
 
-		node = queue_dequeue(&args->queue_head,
-				     &args->queue_tail);
+		node = queue_dequeue(&args->queue);
 		if (!node)
 			goto script;
 

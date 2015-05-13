@@ -35,11 +35,8 @@ struct queue_node {
 	struct queue_node *next;
 };
 
-struct queue_head {
+struct queue {
 	struct queue_node node;
-};
-
-struct queue_tail {
 	struct queue_node *p;
 };
 
@@ -47,25 +44,21 @@ static inline void queue_node_init(struct queue_node *node) {
 	node->next = NULL;
 }
 
-static inline void queue_init(struct queue_head *head,
-                              struct queue_tail *tail) {
-	queue_node_init(&head->node);
-	tail->p = &head->node;
+static inline void queue_init(struct queue *q) {
+	queue_node_init(&q->node);
+	q->p = &q->node;
 }
 
-static inline bool queue_empty(struct queue_head *head,
-                               struct queue_tail *tail) {
-	return CMM_LOAD_SHARED(head->node.next) == NULL &&
-	       CMM_LOAD_SHARED(tail->p) == &head->node;
+static inline bool queue_empty(struct queue *q) {
+	return CMM_LOAD_SHARED(q->node.next) == NULL &&
+	       CMM_LOAD_SHARED(q->p) == &q->node;
 }
 
-static inline bool queue_enqueue(struct queue_head *head,
-                                 struct queue_tail *tail,
-                                 struct queue_node *node) {
-	struct queue_node *old_tail = uatomic_xchg(&tail->p, node);
+static inline bool queue_enqueue(struct queue *q, struct queue_node *node) {
+	struct queue_node *old_tail = uatomic_xchg(&q->p, node);
 	CMM_STORE_SHARED(old_tail->next, node);
 
-	return old_tail != &head->node;
+	return old_tail != &q->node;
 }
 
 static inline struct queue_node *queue_node_next(struct queue_node *node) {
@@ -77,25 +70,24 @@ static inline struct queue_node *queue_node_next(struct queue_node *node) {
 	return next;
 }
 
-static inline struct queue_node *queue_dequeue(struct queue_head *head,
-                                               struct queue_tail *tail) {
+static inline struct queue_node *queue_dequeue(struct queue *q) {
 	struct queue_node *node, *next;
 
-	if (queue_empty(head, tail))
+	if (queue_empty(q))
 		return NULL;
 
-	node = queue_node_next(&head->node);
+	node = queue_node_next(&q->node);
 
 	if ((next = CMM_LOAD_SHARED(node->next)) == NULL) {
-		queue_node_init(&head->node);
+		queue_node_init(&q->node);
 
-		if (uatomic_cmpxchg(&tail->p, node, &head->node) == node)
+		if (uatomic_cmpxchg(&q->p, node, &q->node) == node)
 			return node;
 
 		next = queue_node_next(node);
 	}
 
-	head->node.next = next;
+	q->node.next = next;
 
 	cmm_smp_read_barrier_depends();
 	return node;

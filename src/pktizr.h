@@ -54,8 +54,7 @@ struct pktizr_args {
 	pthread_mutex_t loop_mutex;
 	pthread_cond_t  loop_started;
 
-	struct queue_head queue_head;
-	struct queue_tail queue_tail;
+	struct queue queue;
 
 	uint32_t local_addr;
 	uint32_t gateway_addr;

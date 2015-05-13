@@ -425,7 +425,7 @@ static int pktizr_send(lua_State *L) {
 	struct pkt *pkt = get_pkt(L, args);
 	assert(lua_gettop(L) == 0);
 
-	queue_enqueue(&args->queue_head, &args->queue_tail, &pkt->queue);
+	queue_enqueue(&args->queue, &pkt->queue);
 
 	lua_pushboolean(L, 1);
 
