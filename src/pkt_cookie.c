@@ -30,13 +30,37 @@
 
 #include <stdint.h>
 
-#include "siphash/siphash24.h"
+static uint64_t pyrhash(const uint8_t *k, const uint8_t *m, const uint64_t n) {
+	register int64_t len;
+	register uint64_t x;
+	register uint64_t prefix;
+	register uint64_t suffix;
+	register const unsigned char *p;
+
+	prefix = *(uint64_t *) (k + 0);
+	suffix = *(uint64_t *) (k + 8);
+
+	len = n;
+
+	if (len == 0)
+		return 0;
+
+	p = m;
+	x = prefix;
+	x ^= *p << 7;
+
+	while (--len >= 0)
+		x = (1000003 * x) ^ *p++;
+
+	x ^= n;
+	x ^= suffix;
+
+	return x;
+}
 
 uint64_t pkt_cookie(uint32_t saddr, uint32_t daddr,
                     uint16_t sport, uint16_t dport,
                     uint64_t seed) {
-	uint64_t cookie;
-
 	uint32_t buf[4];
 	uint64_t key[2];
 
@@ -48,9 +72,5 @@ uint64_t pkt_cookie(uint32_t saddr, uint32_t daddr,
 	buf[2] = saddr;
 	buf[3] = sport;
 
-	siphash((uint8_t *) &cookie,
-	        (uint8_t *) buf, sizeof(buf),
-	        (uint8_t *) key);
-
-	return cookie;
+	return pyrhash((const uint8_t *)key, (const uint8_t *)buf, sizeof(buf));
 }

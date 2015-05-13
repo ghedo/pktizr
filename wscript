@@ -171,9 +171,6 @@ def build(bld):
 
 		# Lua BitOpt
 		( 'deps/lua-bitop/bit.c'                   ),
-
-		# siphash
-		( 'deps/siphash/siphash24.c'               ),
 	]
 
 	bld.env.append_value('INCLUDES', ['deps', 'src'])
