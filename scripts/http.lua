@@ -20,9 +20,12 @@ local std = require("pktizr.std")
 local local_addr = std.get_addr()
 local local_port = 64434
 
-local pkt_ip4 = pkt.IP({id=1, src=local_addr})
-local pkt_tcp = pkt.TCP({sport=local_port, syn=true})
-local pkt_raw = pkt.Raw({})
+local pkt_ip4 = pkt.IP()
+pkt_ip4.src = local_addr
+
+local pkt_tcp = pkt.TCP()
+pkt_tcp.sport = local_port
+pkt_tcp.syn   = true
 
 function loop(addr, port)
 	pkt_ip4.dst = addr
@@ -69,9 +72,26 @@ function recv(pkts)
 
 		pkt.send(pkt_ip4, pkt_tcp)
 
+		-- We can't reuse pkt_ip4 and pkt_tcp again (they might still
+		-- be in the send queue) so we creare new ones.
+		local pkt_ip4_new   = pkt.IP()
+		pkt_ip4_new.src     = dst
+		pkt_ip4_new.dst     = src
+
+		local pkt_tcp_new   = pkt.TCP()
+		pkt_tcp_new.sport   = dport
+		pkt_tcp_new.dport   = sport
+		pkt_tcp_new.doff    = 5
+		pkt_tcp_new.syn     = false
+		pkt_tcp_new.psh     = false
+		pkt_tcp_new.ack     = true
+		pkt_tcp_new.ack_seq = pkt_tcp.ack_seq
+		pkt_tcp_new.seq     = pkt_tcp.seq
+
+		local pkt_raw   = pkt.Raw()
 		pkt_raw.payload = "GET / HTTP/1.1\r\n\r\n"
 
-		pkt.send(pkt_ip4, pkt_tcp, pkt_raw)
+		pkt.send(pkt_ip4_new, pkt_tcp_new, pkt_raw)
 		return
 	end
 

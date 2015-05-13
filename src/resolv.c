@@ -78,14 +78,14 @@ int resolv_addr_to_mac(struct netdev *netdev,
 	saddr = htonl(saddr);
 	daddr = htonl(daddr);
 
-	struct pkt *arp = pkt_new(NULL, TYPE_ARP);
+	struct pkt *arp = pkt_new(TYPE_ARP);
 	DL_APPEND(pkt, arp);
 
 	pkt_build_arp(arp, ARPHRD_ETHER, ETHERTYPE_IP, ARPOP_REQUEST,
 	              shost, (uint8_t *) &saddr,
 	              (uint8_t *) "\x00\x00\x00\x00\x00\x00", (uint8_t*)&daddr);
 
-	struct pkt *eth = pkt_new(NULL, TYPE_ETH);
+	struct pkt *eth = pkt_new(TYPE_ETH);
 	DL_APPEND(pkt, eth);
 
 	pkt_build_eth(eth, shost, (uint8_t *) "\xff\xff\xff\xff\xff\xff", 0);
@@ -93,7 +93,7 @@ int resolv_addr_to_mac(struct netdev *netdev,
 	buf = netdev->get_buf(netdev, &blen);
 
 	int len = pkt_pack(buf, blen, pkt);
-	pkt_free(arp);
+	pkt_free_all(arp);
 
 	if (len < 0)
 		fail_printf("Error packing ARP packet");
@@ -117,7 +117,7 @@ again:
 		if (rsp == NULL)
 			continue;
 
-		n = pkt_unpack(NULL, (uint8_t *) rsp, rsp_len, &rsp_pkt);
+		n = pkt_unpack((uint8_t *) rsp, rsp_len, &rsp_pkt);
 		if (n < 2)
 			goto done;
 
@@ -132,7 +132,7 @@ again:
 
 			memcpy(dhost, arp_pkt->p.arp.hwsrc, 6);
 
-			pkt_free(rsp_pkt);
+			pkt_free_all(rsp_pkt);
 
 			netdev->release(netdev);
 			break;

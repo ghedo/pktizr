@@ -49,24 +49,23 @@
 #include "util.h"
 #include "pktizr.h"
 
-static struct pkt *get_pkt(lua_State *L, struct pktizr_args *args);
+static void push_pkt(lua_State *L, enum pkt_type type, struct pkt *p);
+static struct pkt *pop_pkt(lua_State *L, struct pktizr_args *args);
 
-static int get_type(lua_State *L);
+static int get_ip4(lua_State *L, const char *key, struct ip4_hdr *ip4);
+static int set_ip4(lua_State *L, const char *key, struct ip4_hdr *ip4);
 
-static int get_ip4(lua_State *L, struct ip4_hdr *ip4);
-static int set_ip4(lua_State *L, struct ip4_hdr *ip4);
+static int get_icmp(lua_State *L, const char *key, struct icmp_hdr *icmp);
+static int set_icmp(lua_State *L, const char *key, struct icmp_hdr *icmp);
 
-static int get_icmp(lua_State *L, struct icmp_hdr *icmp);
-static int set_icmp(lua_State *L, struct icmp_hdr *icmp);
+static int get_udp(lua_State *L, const char *key, struct udp_hdr *udp);
+static int set_udp(lua_State *L, const char *key, struct udp_hdr *udp);
 
-static int get_udp(lua_State *L, struct udp_hdr *udp);
-static int set_udp(lua_State *L, struct udp_hdr *udp);
+static int get_tcp(lua_State *L, const char *key, struct tcp_hdr *tcp);
+static int set_tcp(lua_State *L, const char *key, struct tcp_hdr *tcp);
 
-static int get_tcp(lua_State *L, struct tcp_hdr *tcp);
-static int set_tcp(lua_State *L, struct tcp_hdr *tcp);
-
-static int get_raw(lua_State *L, struct raw_hdr *raw);
-static int set_raw(lua_State *L, struct raw_hdr *raw);
+static int get_raw(lua_State *L, const char *key, struct raw_hdr *raw);
+static int set_raw(lua_State *L, const char *key, struct raw_hdr *raw);
 
 LUALIB_API int luaopen_bit(lua_State *L);
 LUALIB_API int luaopen_compat53_string(lua_State *L);
@@ -78,8 +77,9 @@ static const luaL_Reg pktizr_libs[] = {
 	{ "pktizr.bit", luaopen_bit             },
 	{ "pktizr.pkt", luaopen_pkt             },
 	{ "pktizr.std", luaopen_std             },
-	{ NULL,       NULL                    }
+	{ NULL,         NULL                    }
 };
+
 
 void *script_load(struct pktizr_args *args) {
 	int rc;
@@ -158,7 +158,7 @@ int script_loop(void *L, struct pktizr_args *args, struct pkt **pkt,
 		fail_printf("Error running script: %s", err);
 	}
 
-	*pkt = get_pkt(L, args);
+	*pkt = pop_pkt(L, args);
 
 	assert(lua_gettop(L) == 0);
 
@@ -172,7 +172,7 @@ error:
 int script_recv(void *L, struct pktizr_args *args, struct pkt *pkt) {
 	int rc, n = 1;
 
-	struct pkt *cur;
+	struct pkt *cur, *tmp;
 
 	assert(lua_gettop(L) == 0);
 
@@ -185,51 +185,24 @@ int script_recv(void *L, struct pktizr_args *args, struct pkt *pkt) {
 	luaL_checkstack(L, 1, "OOM");
 	lua_newtable(L);
 
-	DL_FOREACH(pkt, cur) {
+	DL_FOREACH_SAFE(pkt, cur, tmp) {
 		luaL_checkstack(L, 1, "OOM");
 
 		switch (cur->type) {
 		case TYPE_ETH:
 		case TYPE_ARP:
+			DL_DELETE(pkt, cur);
+			pkt_free(cur);
 			break;
 
 		case TYPE_IP4:
-			lua_newtable(L);
-
-			set_ip4(L, &cur->p.ip4);
-			lua_rawseti(L, -2, n++);
-			break;
-
 		case TYPE_ICMP:
-			lua_newtable(L);
-
-			set_icmp(L, &cur->p.icmp);
-			lua_rawseti(L, -2, n++);
-			break;
-
 		case TYPE_UDP:
-			lua_newtable(L);
-
-			set_udp(L, &cur->p.udp);
-			lua_rawseti(L, -2, n++);
-			break;
-
 		case TYPE_TCP:
-			lua_newtable(L);
-
-			set_tcp(L, &cur->p.tcp);
-			lua_rawseti(L, -2, n++);
-			break;
-
 		case TYPE_RAW:
-			lua_newtable(L);
-
-			set_raw(L, &cur->p.raw);
+			push_pkt(L, cur->type, cur);
 			lua_rawseti(L, -2, n++);
 			break;
-
-		default:
-			fail_printf("Invalid packet type: %u", cur->type);
 		}
 	}
 
@@ -257,73 +230,61 @@ error:
 }
 
 static int pktizr_IP(lua_State *L) {
-	if ((lua_gettop(L) == 0) || !lua_istable(L, -1))
+	if (lua_gettop(L) != 0)
 		luaL_error(L, "Invalid argument");
 
-	struct ip4_hdr ip4 = {
-		.version = 4,
-		.ihl     = 5,
-		.ttl     = 64,
-	};
+	struct pkt *p = pkt_new(TYPE_IP4);
 
-	get_ip4(L, &ip4);
-	set_ip4(L, &ip4);
+	p->p.ip4.version = 4;
+	p->p.ip4.ihl     = 5;
+	p->p.ip4.ttl     = 64;
 
+	push_pkt(L, TYPE_IP4, p);
 	return 1;
 }
 
 static int pktizr_ICMP(lua_State *L) {
-	if ((lua_gettop(L) != 1) || !lua_istable(L, -1))
+	if (lua_gettop(L) != 0)
 		luaL_error(L, "Invalid argument");
 
-	struct icmp_hdr icmp = {
-		.type = 8,
-	};
+	struct pkt *p = pkt_new(TYPE_ICMP);
 
-	get_icmp(L, &icmp);
-	set_icmp(L, &icmp);
+	p->p.icmp.type = 8;
 
+	push_pkt(L, TYPE_ICMP, p);
 	return 1;
 }
 
 static int pktizr_UDP(lua_State *L) {
-	if ((lua_gettop(L) != 1) || !lua_istable(L, -1))
+	if (lua_gettop(L) != 0)
 		luaL_error(L, "Invalid argument");
 
-	struct udp_hdr udp = { 0 };
-
-	get_udp(L, &udp);
-	set_udp(L, &udp);
-
+	push_pkt(L, TYPE_UDP, NULL);
 	return 1;
 }
 
 static int pktizr_TCP(lua_State *L) {
-	if ((lua_gettop(L) != 1) || !lua_istable(L, -1))
+	if (lua_gettop(L) != 0)
 		luaL_error(L, "Invalid argument");
 
-	struct tcp_hdr tcp = {
-		.doff   = 5,
-		.window = 5840,
-	};
+	struct pkt *p = pkt_new(TYPE_TCP);
 
-	get_tcp(L, &tcp);
-	set_tcp(L, &tcp);
+	p->p.tcp.doff   = 5;
+	p->p.tcp.window = 5840;
 
+	push_pkt(L, TYPE_TCP, p);
 	return 1;
 }
 
 static int pktizr_Raw(lua_State *L) {
-	if ((lua_gettop(L) != 1) || !lua_istable(L, -1))
+	if (lua_gettop(L) != 0)
 		luaL_error(L, "Invalid argument");
 
-	struct raw_hdr raw = {
-		.payload = NULL,
-	};
+	struct pkt *p = pkt_new(TYPE_RAW);
 
-	get_raw(L, &raw);
-	set_raw(L, &raw);
+	p->p.raw.payload = NULL;
 
+	push_pkt(L, TYPE_RAW, p);
 	return 1;
 }
 
@@ -422,7 +383,7 @@ static int pktizr_send(lua_State *L) {
 	args = lua_touserdata(L, -1);
 	lua_pop(L, 1);
 
-	struct pkt *pkt = get_pkt(L, args);
+	struct pkt *pkt = pop_pkt(L, args);
 	assert(lua_gettop(L) == 0);
 
 	queue_enqueue(&args->queue, &pkt->queue);
@@ -430,6 +391,95 @@ static int pktizr_send(lua_State *L) {
 	lua_pushboolean(L, 1);
 
 	return 1;
+}
+
+static int pktizr_pkt_gc(lua_State* L) {
+	void *u = lua_touserdata(L, -1);
+
+	if (u == NULL)
+		return 0;
+
+	struct pkt *p = *(struct pkt **) u;
+	pkt_free(p);
+
+	return 0;
+}
+
+static int pktizr_pkt_newindex(lua_State* L) {
+	struct pkt *p   = *(struct pkt **) lua_touserdata(L, -3);
+	const char *key = lua_tostring(L, -2);
+
+	switch (p->type) {
+	case TYPE_IP4:
+		p->length = set_ip4(L, key, &p->p.ip4);
+		return 0;
+
+	case TYPE_ICMP:
+		p->length = set_icmp(L, key, &p->p.icmp);
+		return 0;
+
+	case TYPE_UDP:
+		p->length = set_udp(L, key, &p->p.udp);
+		return 0;
+
+	case TYPE_TCP:
+		p->length = set_tcp(L, key, &p->p.tcp);
+		return 0;
+
+	case TYPE_RAW:
+		p->length = set_raw(L, key, &p->p.raw);
+		return 0;
+	}
+
+	return 0;
+}
+
+static int pktizr_pkt_index(lua_State* L) {
+	struct pkt *p   = *(struct pkt **) lua_touserdata(L, -2);
+	const char *key = lua_tostring(L, -1);
+
+	if (!strncmp("_type", key, sizeof("_type"))) {
+		switch (p->type) {
+		case TYPE_IP4:
+			lua_pushstring(L, "ip4");
+			return 1;
+
+		case TYPE_ICMP:
+			lua_pushstring(L, "icmp");
+			return 1;
+
+		case TYPE_UDP:
+			lua_pushstring(L, "udp");
+			return 1;
+
+		case TYPE_TCP:
+			lua_pushstring(L, "tcp");
+			return 1;
+
+		case TYPE_RAW:
+			lua_pushstring(L, "raw");
+			return 1;
+		}
+	}
+
+	switch (p->type) {
+	case TYPE_IP4:
+		return get_ip4(L, key, &p->p.ip4);
+
+	case TYPE_ICMP:
+		return get_icmp(L, key, &p->p.icmp);
+
+	case TYPE_UDP:
+		return get_udp(L, key, &p->p.udp);
+
+	case TYPE_TCP:
+		return get_tcp(L, key, &p->p.tcp);
+
+	case TYPE_RAW:
+		return get_raw(L, key, &p->p.raw);
+	}
+
+	return 0;
 }
 
 LUALIB_API int luaopen_pkt(lua_State *L) {
@@ -442,10 +492,22 @@ LUALIB_API int luaopen_pkt(lua_State *L) {
 		{ "cookie16", pktizr_cookie16 },
 		{ "cookie32", pktizr_cookie32 },
 		{ "send",     pktizr_send     },
-		{ NULL,       NULL          }
+		{ NULL,       NULL            }
+	};
+
+	luaL_Reg const pkt_meta[] = {
+		{ "__gc",       pktizr_pkt_gc       },
+		{ "__index",    pktizr_pkt_index    },
+		{ "__newindex", pktizr_pkt_newindex },
+		{ NULL,         NULL                }
 	};
 
 	luaL_newlib(L, funcs);
+
+	luaL_newmetatable(L, "pktizr.pkt");
+	luaL_setfuncs(L, pkt_meta, 0);
+	lua_setmetatable(L, -2);
+
 	return 1;
 }
 
@@ -454,54 +516,31 @@ LUALIB_API int luaopen_std(lua_State *L) {
 		{ "get_time", pktizr_get_time },
 		{ "get_addr", pktizr_get_addr },
 		{ "print",    pktizr_print    },
-		{ NULL,       NULL          }
+		{ NULL,       NULL            }
 	};
 
 	luaL_newlib(L, funcs);
 	return 1;
 }
 
-static struct pkt *get_pkt(lua_State *L, struct pktizr_args *args) {
+static struct pkt *pop_pkt(lua_State *L, struct pktizr_args *args) {
 	struct pkt *pkt = NULL;
 
 	while (lua_gettop(L) != 0) {
-		if (!lua_istable(L, -1))
+		struct pkt *p = NULL;
+
+		if (!lua_isuserdata(L, -1))
 			luaL_error(L, "Invalid packet type");
 
-		uint16_t type = get_type(L);
-
-		struct pkt *p = pkt_new(NULL, type);
+		p = *(struct pkt **) lua_touserdata(L, -1);
 		DL_APPEND(pkt, p);
 
-		switch (type) {
-		case TYPE_IP4:
-			p->length = get_ip4(L, &p->p.ip4);
-			break;
-
-		case TYPE_ICMP:
-			p->length = get_icmp(L, &p->p.icmp);
-			break;
-
-		case TYPE_UDP:
-			p->length = get_udp(L, &p->p.udp);
-			break;
-
-		case TYPE_TCP:
-			p->length = get_tcp(L, &p->p.tcp);
-			break;
-
-		case TYPE_RAW:
-			p->length = get_raw(L, &p->p.raw);
-			break;
-
-		default:
-			luaL_error(L, "Invalid packet type: %u", type);
-		}
+		p->refcnt++;
 
 		lua_pop(L, 1);
 	}
 
-	struct pkt *eth = pkt_new(NULL, TYPE_ETH);
+	struct pkt *eth = pkt_new(TYPE_ETH);
 	DL_APPEND(pkt, eth);
 
 	pkt_build_eth(eth, args->local_mac, args->gateway_mac, 0);
@@ -509,209 +548,477 @@ static struct pkt *get_pkt(lua_State *L, struct pktizr_args *args) {
 	return pkt;
 }
 
-#define luaH_getfield(STATE, FIELD, TYPE, OUT)				\
-do {									\
-	luaL_checkstack(STATE, 1, "OOM");				\
-	lua_getfield(STATE, -1, FIELD);					\
-									\
-	if (!lua_isnil(STATE, -1)) {					\
-		if (!lua_is##TYPE(STATE, -1))				\
-			fail_printf("Invalid value for field '%s'", FIELD); \
-									\
-		OUT = lua_to##TYPE(STATE, -1);				\
-	}								\
-									\
-	lua_pop(STATE, 1);						\
-} while (0);
+static void push_pkt(lua_State *L, enum pkt_type type, struct pkt *p) {
+	struct pkt **pkt = lua_newuserdata(L, sizeof(*pkt));
 
-#define luaH_setfield(STATE, FIELD, TYPE, IN)				\
-do {									\
-	luaL_checkstack(STATE, 1, "OOM");				\
-	lua_push##TYPE(STATE, IN);					\
-	lua_setfield(STATE, -2, FIELD);					\
-} while (0);
+	if (p == NULL)
+		p = pkt_new(type);
 
-static int get_type(lua_State *L) {
-	const char *type = NULL;
+	*pkt = p;
 
-	luaH_getfield(L, "_type", string, type);
-	if (type == NULL)
-		return TYPE_NONE;
-
-	if (strcmp(type, "ip4") == 0)
-		return TYPE_IP4;
-	else if (strcmp(type, "icmp") == 0)
-		return TYPE_ICMP;
-	else if (strcmp(type, "udp") == 0)
-		return TYPE_UDP;
-	else if (strcmp(type, "tcp") == 0)
-		return TYPE_TCP;
-	else if (strcmp(type, "raw") == 0)
-		return TYPE_RAW;
-
-	return TYPE_NONE;
+	luaL_setmetatable(L, "pktizr.pkt");
 }
 
-static int get_ip4(lua_State *L, struct ip4_hdr *ip4) {
-	luaH_getfield(L, "version", number, ip4->version);
-	luaH_getfield(L, "ihl", number, ip4->ihl);
-	luaH_getfield(L, "tos", number, ip4->tos);
+#define MATCH_KEY(NAME, KEY)				\
+	(!strncmp(NAME, KEY, sizeof(NAME)))
 
-	luaH_getfield(L, "len", number, ip4->len);
-	luaH_getfield(L, "id", number, ip4->id);
-	luaH_getfield(L, "frag", number, ip4->frag_off);
+#define MATCH_KEY_TYPE(NAME, KEY, TYPE)			\
+	(MATCH_KEY(NAME, KEY) && lua_is##TYPE(L, -1))
 
-	luaH_getfield(L, "ttl", number, ip4->ttl);
-	luaH_getfield(L, "proto", number, ip4->proto);
-
-	luaH_getfield(L, "chksum", number, ip4->chksum);
-
-	const char *saddr = NULL;
-	luaH_getfield(L, "src", string, saddr);
-	if (saddr)
-		inet_aton(saddr, (struct in_addr *) &ip4->src);
-
-	const char *daddr = NULL;
-	luaH_getfield(L, "dst", string, daddr);
-	if (daddr)
-		inet_aton(daddr, (struct in_addr *) &ip4->dst);
-
-	return 20;
-}
-
-static int set_ip4(lua_State *L, struct ip4_hdr *ip4) {
-	luaH_setfield(L, "_type", string, "ip4");
-
-	luaH_setfield(L, "version", number, ip4->version);
-	luaH_setfield(L, "ihl", number, ip4->ihl);
-	luaH_setfield(L, "tos", number, ip4->tos);
-
-	luaH_setfield(L, "len", number, ip4->len);
-	luaH_setfield(L, "id", number, ip4->id);
-	luaH_setfield(L, "frag", number, ip4->frag_off);
-
-	luaH_setfield(L, "ttl", number, ip4->ttl);
-
-	if (ip4->proto != 0)
-		luaH_setfield(L, "proto", number, ip4->proto);
-
-	luaH_setfield(L, "chksum", number, ip4->chksum);
-
-	struct in_addr saddr = { .s_addr = ip4->src };
-	luaH_setfield(L, "src", string, inet_ntoa(saddr));
-
-	struct in_addr daddr = { .s_addr = ip4->dst };
-	luaH_setfield(L, "dst", string, inet_ntoa(daddr));
-
-	return 20;
-}
-
-static int get_icmp(lua_State *L, struct icmp_hdr *icmp) {
-	luaH_getfield(L, "type", number, icmp->type);
-	luaH_getfield(L, "code", number, icmp->code);
-	luaH_getfield(L, "chksum", number, icmp->chksum);
-
-	luaH_getfield(L, "id", number, icmp->id);
-	luaH_getfield(L, "seq", number, icmp->seq);
-
-	return 8;
-}
-
-static int set_icmp(lua_State *L, struct icmp_hdr *icmp) {
-	luaH_setfield(L, "_type", string, "icmp");
-
-	luaH_setfield(L, "type", number, icmp->type);
-	luaH_setfield(L, "code", number, icmp->code);
-	luaH_setfield(L, "chksum", number, icmp->chksum);
-
-	luaH_setfield(L, "id", number, icmp->id);
-	luaH_setfield(L, "seq", number, icmp->seq);
-
-	return 8;
-}
-
-static int get_udp(lua_State *L, struct udp_hdr *udp) {
-	luaH_getfield(L, "sport", number, udp->sport);
-	luaH_getfield(L, "dport", number, udp->dport);
-
-	luaH_getfield(L, "len", number, udp->len);
-	luaH_getfield(L, "chksum", number, udp->chksum);
-
-	return 8;
-}
-
-static int set_udp(lua_State *L, struct udp_hdr *udp) {
-	luaH_setfield(L, "_type", string, "udp");
-
-	luaH_setfield(L, "sport", number, udp->sport);
-	luaH_setfield(L, "dport", number, udp->dport);
-
-	luaH_setfield(L, "len", number, udp->len);
-	luaH_setfield(L, "chksum", number, udp->chksum);
-
-	return 8;
-}
-
-static int get_tcp(lua_State *L, struct tcp_hdr *tcp) {
-	luaH_getfield(L, "sport", number, tcp->sport);
-	luaH_getfield(L, "dport", number, tcp->dport);
-	luaH_getfield(L, "seq", number, tcp->seq);
-	luaH_getfield(L, "ack_seq", number, tcp->ack_seq);
-
-	luaH_getfield(L, "doff", number, tcp->doff);
-
-	luaH_getfield(L, "fin", boolean, tcp->fin);
-	luaH_getfield(L, "syn", boolean, tcp->syn);
-	luaH_getfield(L, "rst", boolean, tcp->rst);
-	luaH_getfield(L, "psh", boolean, tcp->psh);
-	luaH_getfield(L, "ack", boolean, tcp->ack);
-	luaH_getfield(L, "urg", boolean, tcp->urg);
-	luaH_getfield(L, "ece", boolean, tcp->ece);
-	luaH_getfield(L, "cwr", boolean, tcp->cwr);
-	luaH_getfield(L, "ns", boolean, tcp->ns);
-
-	luaH_getfield(L, "window", number, tcp->window);
-	luaH_getfield(L, "chksum", number, tcp->chksum);
-	luaH_getfield(L, "urg_ptr", number, tcp->urg_ptr);
-
-	return 20;
-}
-
-static int set_tcp(lua_State *L, struct tcp_hdr *tcp) {
-	luaH_setfield(L, "_type", string, "tcp");
-
-	luaH_setfield(L, "sport", number, tcp->sport);
-	luaH_setfield(L, "dport", number, tcp->dport);
-	luaH_setfield(L, "seq", number, tcp->seq);
-	luaH_setfield(L, "ack_seq", number, tcp->ack_seq);
-
-	luaH_setfield(L, "doff", number, tcp->doff);
-
-	luaH_setfield(L, "fin", boolean, tcp->fin);
-	luaH_setfield(L, "syn", boolean, tcp->syn);
-	luaH_setfield(L, "rst", boolean, tcp->rst);
-	luaH_setfield(L, "psh", boolean, tcp->psh);
-	luaH_setfield(L, "ack", boolean, tcp->ack);
-	luaH_setfield(L, "urg", boolean, tcp->urg);
-	luaH_setfield(L, "ece", boolean, tcp->ece);
-	luaH_setfield(L, "cwr", boolean, tcp->cwr);
-	luaH_setfield(L, "ns", boolean, tcp->ns);
-
-	luaH_setfield(L, "window", number, tcp->window);
-	luaH_setfield(L, "chksum", number, tcp->chksum);
-	luaH_setfield(L, "urg_ptr", number, tcp->urg_ptr);
-
-	return 20;
-}
-
-static int get_raw(lua_State *L, struct raw_hdr *raw) {
+static int get_ip4(lua_State *L, const char *key, struct ip4_hdr *ip4) {
 	luaL_checkstack(L, 1, "OOM");
-	lua_getfield(L, -1, "payload");
 
-	if (!lua_isnil(L, -1)) {
-		if (!lua_isstring(L, -1))
-			fail_printf("Invalid value for field 'payload'");
+	if (MATCH_KEY("version", key)) {
+		lua_pushnumber(L, ip4->version);
+		goto done;
+	}
 
+	if (MATCH_KEY("ihl", key)) {
+		lua_pushnumber(L, ip4->ihl);
+		goto done;
+	}
+
+	if (MATCH_KEY("tos", key)) {
+		lua_pushnumber(L, ip4->tos);
+		goto done;
+	}
+
+	if (MATCH_KEY("len", key)) {
+		lua_pushnumber(L, ip4->len);
+		goto done;
+	}
+
+	if (MATCH_KEY("id", key)) {
+		lua_pushnumber(L, ip4->id);
+		goto done;
+	}
+
+	if (MATCH_KEY("frag", key)) {
+		lua_pushnumber(L, ip4->frag_off);
+		goto done;
+	}
+
+	if (MATCH_KEY("ttl", key)) {
+		lua_pushnumber(L, ip4->ttl);
+		goto done;
+	}
+
+	if (MATCH_KEY("proto", key)) {
+		lua_pushnumber(L, ip4->proto);
+		goto done;
+	}
+
+	if (MATCH_KEY("chksum", key)) {
+		lua_pushnumber(L, ip4->chksum);
+		goto done;
+	}
+
+	if (MATCH_KEY("src", key)) {
+		struct in_addr saddr = { .s_addr = ip4->src };
+
+		lua_pushstring(L, inet_ntoa(saddr));
+		goto done;
+	}
+
+	if (MATCH_KEY("dst", key)) {
+		struct in_addr daddr = { .s_addr = ip4->dst };
+
+		lua_pushstring(L, inet_ntoa(daddr));
+		goto done;
+	}
+
+	return luaL_error(L, "Invalid field '%s'", key);
+
+done:
+	return 1;
+}
+
+static int set_ip4(lua_State *L, const char *key, struct ip4_hdr *ip4) {
+	if (MATCH_KEY_TYPE("version", key, number)) {
+		ip4->version = lua_tonumber(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("ihl", key, number)) {
+		ip4->ihl = lua_tonumber(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("tos", key, number)) {
+		ip4->tos = lua_tonumber(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("len", key, number)) {
+		ip4->len = lua_tonumber(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("id", key, number)) {
+		ip4->id = lua_tonumber(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("frag", key, number)) {
+		ip4->frag_off = lua_tonumber(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("ttl", key, number)) {
+		ip4->ttl = lua_tonumber(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("proto", key, number)) {
+		ip4->proto = lua_tonumber(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("chksum", key, number)) {
+		ip4->version = lua_tonumber(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("src", key, string)) {
+		inet_aton(lua_tostring(L, -1), (struct in_addr *) &ip4->src);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("dst", key, string)) {
+		inet_aton(lua_tostring(L, -1), (struct in_addr *) &ip4->dst);
+		goto done;
+	}
+
+	return luaL_error(L, "Invalid field '%s'", key);
+
+done:
+	return 20;
+}
+
+static int get_icmp(lua_State *L, const char *key, struct icmp_hdr *icmp) {
+	luaL_checkstack(L, 1, "OOM");
+
+	if (MATCH_KEY("type", key)) {
+		lua_pushnumber(L, icmp->type);
+		goto done;
+	}
+
+	if (MATCH_KEY("code", key)) {
+		lua_pushnumber(L, icmp->code);
+		goto done;
+	}
+
+	if (MATCH_KEY("chksum", key)) {
+		lua_pushnumber(L, icmp->chksum);
+		goto done;
+	}
+
+	if (MATCH_KEY("id", key)) {
+		lua_pushnumber(L, icmp->id);
+		goto done;
+	}
+
+	if (MATCH_KEY("seq", key)) {
+		lua_pushnumber(L, icmp->seq);
+		goto done;
+	}
+
+	return luaL_error(L, "Invalid field '%s'", key);
+
+done:
+	return 1;
+}
+
+static int set_icmp(lua_State *L, const char *key, struct icmp_hdr *icmp) {
+	if (MATCH_KEY_TYPE("type", key, number)) {
+		icmp->type = lua_tonumber(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("code", key, number)) {
+		icmp->code = lua_tonumber(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("chksum", key, number)) {
+		icmp->chksum = lua_tonumber(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("id", key, number)) {
+		icmp->id = lua_tonumber(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("seq", key, number)) {
+		icmp->seq = lua_tonumber(L, -1);
+		goto done;
+	}
+
+	return luaL_error(L, "Invalid field '%s'", key);
+
+done:
+	return 8;
+}
+
+static int get_udp(lua_State *L, const char *key, struct udp_hdr *udp) {
+	luaL_checkstack(L, 1, "OOM");
+
+	if (MATCH_KEY("sport", key)) {
+		lua_pushnumber(L, udp->sport);
+		goto done;
+	}
+
+	if (MATCH_KEY("dport", key)) {
+		lua_pushnumber(L, udp->dport);
+		goto done;
+	}
+
+	if (MATCH_KEY("len", key)) {
+		lua_pushnumber(L, udp->len);
+		goto done;
+	}
+
+	if (MATCH_KEY("chksum", key)) {
+		lua_pushnumber(L, udp->chksum);
+		goto done;
+	}
+
+	return luaL_error(L, "Invalid field '%s'", key);
+
+done:
+	return 1;
+}
+
+static int set_udp(lua_State *L, const char *key, struct udp_hdr *udp) {
+	if (MATCH_KEY_TYPE("sport", key, number)) {
+		udp->sport = lua_tonumber(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("dport", key, number)) {
+		udp->dport = lua_tonumber(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("len", key, number)) {
+		udp->len = lua_tonumber(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("chksum", key, number)) {
+		udp->chksum = lua_tonumber(L, -1);
+		goto done;
+	}
+
+	return luaL_error(L, "Invalid field '%s'", key);
+
+done:
+	return 8;
+}
+
+static int get_tcp(lua_State *L, const char *key, struct tcp_hdr *tcp) {
+	luaL_checkstack(L, 1, "OOM");
+
+	if (MATCH_KEY("sport", key)) {
+		lua_pushnumber(L, tcp->sport);
+		goto done;
+	}
+
+	if (MATCH_KEY("dport", key)) {
+		lua_pushnumber(L, tcp->dport);
+		goto done;
+	}
+
+	if (MATCH_KEY("seq", key)) {
+		lua_pushnumber(L, tcp->seq);
+		goto done;
+	}
+
+	if (MATCH_KEY("ack_seq", key)) {
+		lua_pushnumber(L, tcp->ack_seq);
+		goto done;
+	}
+
+	if (MATCH_KEY("doff", key)) {
+		lua_pushnumber(L, tcp->doff);
+		goto done;
+	}
+
+	if (MATCH_KEY("fin", key)) {
+		lua_pushboolean(L, tcp->fin);
+		goto done;
+	}
+
+	if (MATCH_KEY("syn", key)) {
+		lua_pushboolean(L, tcp->syn);
+		goto done;
+	}
+
+	if (MATCH_KEY("rst", key)) {
+		lua_pushboolean(L, tcp->rst);
+		goto done;
+	}
+
+	if (MATCH_KEY("psh", key)) {
+		lua_pushboolean(L, tcp->psh);
+		goto done;
+	}
+
+	if (MATCH_KEY("ack", key)) {
+		lua_pushboolean(L, tcp->ack);
+		goto done;
+	}
+
+	if (MATCH_KEY("urg", key)) {
+		lua_pushboolean(L, tcp->urg);
+		goto done;
+	}
+
+	if (MATCH_KEY("ece", key)) {
+		lua_pushboolean(L, tcp->ece);
+		goto done;
+	}
+
+	if (MATCH_KEY("cwr", key)) {
+		lua_pushboolean(L, tcp->cwr);
+		goto done;
+	}
+
+	if (MATCH_KEY("ns", key)) {
+		lua_pushboolean(L, tcp->ns);
+		goto done;
+	}
+
+	if (MATCH_KEY("window", key)) {
+		lua_pushnumber(L, tcp->window);
+		goto done;
+	}
+
+	if (MATCH_KEY("chksum", key)) {
+		lua_pushnumber(L, tcp->chksum);
+		goto done;
+	}
+
+	if (MATCH_KEY("urg_ptr", key)) {
+		lua_pushnumber(L, tcp->urg_ptr);
+		goto done;
+	}
+
+	return luaL_error(L, "Invalid field '%s'", key);
+
+done:
+	return 1;
+}
+
+static int set_tcp(lua_State *L, const char *key, struct tcp_hdr *tcp) {
+	if (MATCH_KEY_TYPE("sport", key, number)) {
+		tcp->sport = lua_tonumber(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("dport", key, number)) {
+		tcp->dport = lua_tonumber(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("seq", key, number)) {
+		tcp->seq = lua_tonumber(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("ack_seq", key, number)) {
+		tcp->ack_seq = lua_tonumber(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("doff", key, number)) {
+		tcp->doff = lua_tonumber(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("fin", key, boolean)) {
+		tcp->fin = lua_toboolean(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("syn", key, boolean)) {
+		tcp->syn = lua_toboolean(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("rst", key, boolean)) {
+		tcp->rst = lua_toboolean(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("psh", key, boolean)) {
+		tcp->psh = lua_toboolean(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("ack", key, boolean)) {
+		tcp->ack = lua_toboolean(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("urg", key, boolean)) {
+		tcp->urg = lua_toboolean(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("ece", key, boolean)) {
+		tcp->ece = lua_toboolean(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("cwr", key, boolean)) {
+		tcp->cwr = lua_toboolean(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("ns", key, boolean)) {
+		tcp->ns = lua_toboolean(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("window", key, number)) {
+		tcp->window = lua_tonumber(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("chksum", key, number)) {
+		tcp->chksum = lua_tonumber(L, -1);
+		goto done;
+	}
+
+	if (MATCH_KEY_TYPE("urg_ptr", key, number)) {
+		tcp->urg_ptr = lua_tonumber(L, -1);
+		goto done;
+	}
+
+	return luaL_error(L, "Invalid field '%s'", key);
+
+done:
+	return 20;
+}
+
+static int get_raw(lua_State *L, const char *key, struct raw_hdr *raw) {
+	luaL_checkstack(L, 1, "OOM");
+
+	if (MATCH_KEY("payload", key)) {
+		lua_pushlstring(L, (const char *) raw->payload, raw->len);
+		goto done;
+	}
+
+	return luaL_error(L, "Invalid field '%s'", key);
+
+done:
+	return 1;
+}
+
+static int set_raw(lua_State *L, const char *key, struct raw_hdr *raw) {
+	if (MATCH_KEY_TYPE("payload", key, string)) {
 		const char *payload = lua_tolstring(L, -1, &raw->len);
 
 		if (raw->payload)
@@ -719,18 +1026,12 @@ static int get_raw(lua_State *L, struct raw_hdr *raw) {
 
 		raw->payload = malloc(raw->len);
 		memcpy(raw->payload, payload, raw->len);
+
+		goto done;
 	}
 
-	lua_pop(L, 1);
-	return raw->len;
-}
+	return luaL_error(L, "Invalid field '%s'", key);
 
-static int set_raw(lua_State *L, struct raw_hdr *raw) {
-	luaH_setfield(L, "_type", string, "raw");
-
-	luaL_checkstack(L, 1, "OOM");
-	lua_pushlstring(L, (const char *) raw->payload, raw->len);
-	lua_setfield(L, -2, "payload");
-
+done:
 	return raw->len;
 }

@@ -21,8 +21,12 @@ local std = require("pktizr.std")
 local local_addr = std.get_addr()
 local local_port = 64434
 
-local pkt_ip4 = pkt.IP({id=1, src=local_addr})
-local pkt_tcp = pkt.TCP({sport=local_port, syn=true})
+local pkt_ip4 = pkt.IP()
+pkt_ip4.src = local_addr
+
+local pkt_tcp = pkt.TCP()
+pkt_tcp.sport = local_port
+pkt_tcp.syn   = true
 
 function loop(addr, port)
 	pkt_ip4.dst = addr

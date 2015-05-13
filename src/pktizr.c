@@ -260,9 +260,9 @@ static void *recv_cb(void *p) {
 		if (buf == NULL)
 			continue;
 
-		rc = pkt_unpack(NULL, (uint8_t *) buf, len, &pkt);
+		rc = pkt_unpack((uint8_t *) buf, len, &pkt);
 		if (!rc)
-			goto release;
+			goto done;
 
 		rc = script_recv(L, args, pkt);
 		if (rc < 0)
@@ -271,9 +271,6 @@ static void *recv_cb(void *p) {
 		args->pkt_recv++;
 
 done:
-		pkt_free(pkt);
-
-release:
 		args->netdev->release(args->netdev);
 	}
 
@@ -361,7 +358,7 @@ script:
 
 		rc = script_loop(L, args, &pkt, daddr, dport);
 		if (rc < 0)
-			continue;
+			goto done;
 
 		pkt_send(args, pkt);
 
@@ -369,7 +366,7 @@ script:
 		bucket.tokens--;
 
 done:
-		pkt_free(pkt);
+		pkt_free_all(pkt);
 	}
 
 	script_close(L);

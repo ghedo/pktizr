@@ -178,9 +178,9 @@ struct raw_hdr {
 };
 
 struct pkt {
-	uint16_t type;
 	size_t   length;
-	bool     probe;
+	uint16_t type;
+	uint16_t refcnt;
 
 	union {
 		struct eth_hdr  eth;
@@ -197,7 +197,7 @@ struct pkt {
 	struct queue_node queue;
 };
 
-struct pkt *pkt_new(void *ta, enum pkt_type type);
+struct pkt *pkt_new(enum pkt_type type);
 
 uint16_t pkt_chksum(uint8_t *buf, size_t len, uint32_t csum);
 uint32_t pkt_pseudo_chksum(struct ip4_hdr *h);
@@ -226,5 +226,6 @@ int pkt_unpack_tcp(struct pkt *p, uint8_t *buf, size_t len);
 int pkt_unpack_raw(struct pkt *p, uint8_t *buf, size_t len);
 
 int pkt_pack(uint8_t *buf, size_t len, struct pkt *p);
-int pkt_unpack(void *ta, uint8_t *buf, size_t len, struct pkt **p);
+int pkt_unpack(uint8_t *buf, size_t len, struct pkt **p);
 void pkt_free(struct pkt *pkt);
+void pkt_free_all(struct pkt *pkt);

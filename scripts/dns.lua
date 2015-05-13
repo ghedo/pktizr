@@ -9,9 +9,13 @@ local std = require("pktizr.std")
 local local_addr = std.get_addr()
 local local_port = 64434
 
-local pkt_ip4 = pkt.IP({id=1, src=local_addr})
-local pkt_udp = pkt.UDP({sport=local_port})
-local pkt_dns = pkt.Raw({})
+local pkt_ip4 = pkt.IP()
+pkt_ip4.src = local_addr
+
+local pkt_udp = pkt.UDP()
+pkt_udp.sport = local_port
+
+local pkt_dns = pkt.Raw()
 
 -- A? example.com. (without initial transaction ID)
 local dns_query = '\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x07\x65\x78\x61\x6d\x70\x6c\x65\x03\x63\x6f\x6d\x00\x00\x01\x00\x01'

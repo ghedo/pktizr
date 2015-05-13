@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
 	fread(buf, len, 1, f);
 	fclose(f);
 
-	rc = pkt_unpack(NULL, buf, len, &pkt);
+	rc = pkt_unpack(buf, len, &pkt);
 	if (!rc)
 		return EXIT_FAILURE;
 
@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
 		printf("%u\n", cur->type);
 	}
 
-	pkt_free(pkt);
+	pkt_free_all(pkt);
 
 	return EXIT_SUCCESS;
 }

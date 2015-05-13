@@ -9,9 +9,13 @@ local std = require("pktizr.std")
 local local_addr = std.get_addr()
 local local_port = 64434
 
-local pkt_ip4  = pkt.IP({id=1, src=local_addr})
-local pkt_icmp = pkt.ICMP({type=8, id=1})
-local pkt_raw  = pkt.Raw({})
+local pkt_ip4  = pkt.IP()
+pkt_ip4.src = local_addr
+
+local pkt_icmp = pkt.ICMP()
+pkt_icmp.type = 8
+
+local pkt_raw = pkt.Raw()
 
 function loop(addr, port)
 	pkt_ip4.dst = addr

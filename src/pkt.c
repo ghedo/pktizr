@@ -41,10 +41,11 @@
 #include "printf.h"
 #include "util.h"
 
-struct pkt *pkt_new(void *ta, enum pkt_type type) {
+struct pkt *pkt_new(enum pkt_type type) {
 	struct pkt *p = calloc(1, sizeof(*p));
 
-	p->type = type;
+	p->type   = type;
+	p->refcnt = 1;
 
 	switch (type) {
 	case TYPE_ETH:
@@ -168,7 +169,7 @@ int pkt_pack(uint8_t *buf, size_t len, struct pkt *p) {
 	return plen;
 }
 
-int pkt_unpack(void *ta, uint8_t *buf, size_t len, struct pkt **p) {
+int pkt_unpack(uint8_t *buf, size_t len, struct pkt **p) {
 	int n = 0;
 	size_t i = 0;
 
@@ -179,7 +180,7 @@ int pkt_unpack(void *ta, uint8_t *buf, size_t len, struct pkt **p) {
 	int next_type = TYPE_ETH;
 
 	while ((i < len) && (next_type != TYPE_NONE)) {
-		struct pkt *new = pkt_new(NULL, next_type);
+		struct pkt *new = pkt_new(next_type);
 		DL_APPEND(pkt, new);
 
 		switch (next_type) {
@@ -216,7 +217,7 @@ int pkt_unpack(void *ta, uint8_t *buf, size_t len, struct pkt **p) {
 		}
 
 		if (next_type < 0) {
-			pkt_free(pkt);
+			pkt_free_all(pkt);
 			return 0;
 		}
 
@@ -230,34 +231,32 @@ int pkt_unpack(void *ta, uint8_t *buf, size_t len, struct pkt **p) {
 }
 
 void pkt_free(struct pkt *pkt) {
+	pkt->refcnt--;
+
+	if (pkt->refcnt > 0)
+		return;
+
+	switch (pkt->type) {
+	case TYPE_ARP:
+		freep(&pkt->p.arp.hwsrc);
+		freep(&pkt->p.arp.hwdst);
+		freep(&pkt->p.arp.psrc);
+		freep(&pkt->p.arp.pdst);
+		break;
+
+	case TYPE_RAW:
+		freep(&pkt->p.raw.payload);
+		break;
+	}
+
+	free(pkt);
+}
+
+void pkt_free_all(struct pkt *pkt) {
 	struct pkt *cur, *tmp;
 
 	DL_FOREACH_SAFE(pkt, cur, tmp) {
 		DL_DELETE(pkt, cur);
-
-		switch (cur->type) {
-		case TYPE_ARP:
-			if (cur->p.arp.hwsrc)
-				free(cur->p.arp.hwsrc);
-
-			if (cur->p.arp.hwdst)
-				free(cur->p.arp.hwdst);
-
-			if (cur->p.arp.psrc)
-				free(cur->p.arp.psrc);
-
-			if (cur->p.arp.pdst)
-				free(cur->p.arp.pdst);
-
-			break;
-
-		case TYPE_RAW:
-			if (cur->p.raw.payload)
-				free(cur->p.raw.payload);
-
-			break;
-		}
-
-		free(cur);
+		pkt_free(cur);
 	}
 }
