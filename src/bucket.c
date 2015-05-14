@@ -43,12 +43,12 @@ void bucket_init(struct bucket *t, uint64_t rate) {
 	t->timestamp = time_now();
 }
 
-bool bucket_consume(struct bucket *t) {
+void bucket_consume(struct bucket *t) {
 	uint64_t now;
 	double tokens;
 
 	if (!t->rate)
-		return true;
+		return;
 
 	do {
 		now    = time_now();
@@ -67,5 +67,5 @@ bool bucket_consume(struct bucket *t) {
 
 	t->timestamp = now;
 
-	return true;
+	return;
 }

@@ -35,4 +35,4 @@ struct bucket {
 };
 
 void bucket_init(struct bucket *t, uint64_t rate);
-bool bucket_consume(struct bucket *t);
+void bucket_consume(struct bucket *t);
