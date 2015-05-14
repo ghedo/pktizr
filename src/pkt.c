@@ -93,26 +93,44 @@ struct pkt *pkt_new(enum pkt_type type) {
 int pkt_pack(uint8_t *buf, size_t len, struct pkt *p) {
 	struct pkt *cur;
 	size_t plen = 0, i = 0;
+	enum pkt_type prev_type = TYPE_NONE;
 
 	DL_FOREACH(p, cur) {
 		plen += cur->length;
 
 		switch (cur->type) {
+		case TYPE_ETH:
+			switch (prev_type) {
+			case TYPE_ARP:
+				cur->p.eth.type= ETHERTYPE_ARP;
+				break;
+
+			case TYPE_IP4:
+				cur->p.eth.type= ETHERTYPE_IP;
+				break;
+
+			default:
+				break;
+			}
+
+			break;
+
 		case TYPE_IP4:
-			if (cur->prev) {
-				switch (cur->prev->type) {
-				case TYPE_ICMP:
-					cur->p.ip4.proto = PROTO_ICMP;
-					break;
+			switch (prev_type) {
+			case TYPE_ICMP:
+				cur->p.ip4.proto = PROTO_ICMP;
+				break;
 
-				case TYPE_UDP:
-					cur->p.ip4.proto = PROTO_UDP;
-					break;
+			case TYPE_UDP:
+				cur->p.ip4.proto = PROTO_UDP;
+				break;
 
-				case TYPE_TCP:
-					cur->p.ip4.proto = PROTO_TCP;
-					break;
-				}
+			case TYPE_TCP:
+				cur->p.ip4.proto = PROTO_TCP;
+				break;
+
+			default:
+				break;
 			}
 
 			cur->p.ip4.len = plen;
@@ -125,6 +143,8 @@ int pkt_pack(uint8_t *buf, size_t len, struct pkt *p) {
 		case TYPE_TCP:
 			break;
 		}
+
+		prev_type = cur->type;
 	}
 
 	if (len < plen)

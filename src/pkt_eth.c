@@ -52,21 +52,9 @@ void pkt_build_eth(struct pkt *p, uint8_t *src, uint8_t *dst, uint16_t type) {
 
 void pkt_pack_eth(struct pkt *p, uint8_t *buf, size_t len) {
 	struct eth_hdr out;
-	uint16_t type = p->p.eth.type;
 
-	if (p->prev) {
-		switch (p->prev->type) {
-		case TYPE_ARP:
-			type = ETHERTYPE_ARP;
-			break;
+	out.type = htons(p->p.eth.type);
 
-		case TYPE_IP4:
-			type = ETHERTYPE_IP;
-			break;
-		}
-	}
-
-	out.type = htons(type);
 	memcpy(out.src, p->p.eth.src, 6);
 	memcpy(out.dst, p->p.eth.dst, 6);
 
