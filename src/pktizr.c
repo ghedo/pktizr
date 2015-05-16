@@ -41,6 +41,8 @@
 #include <arpa/inet.h>
 #include <net/if.h>
 
+#include <urcu/uatomic.h>
+
 #include "bucket.h"
 #include "netdev.h"
 #include "ranges.h"
@@ -346,7 +348,7 @@ static void *loop_cb(void *p) {
 		goto done;
 
 script:
-		if ((i >= tot_cnt) || args->stop)
+		if (caa_unlikely((i >= tot_cnt) || args->stop))
 			continue;
 
 		daddr = range_list_pick(args->targets,
@@ -357,7 +359,7 @@ script:
 		i++;
 
 		rc = script_loop(L, args, &pkt, daddr, dport);
-		if (rc < 0)
+		if (caa_unlikely(rc < 0))
 			goto done;
 
 		pkt_send(args, pkt);

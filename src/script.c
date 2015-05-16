@@ -39,6 +39,8 @@
 #include <lualib.h>
 #include <lauxlib.h>
 
+#include <urcu/uatomic.h>
+
 #include "lua-compat-5.3/c-api/compat-5.3.h"
 #include "ut/utlist.h"
 
@@ -140,7 +142,7 @@ int script_loop(void *L, struct pktizr_args *args, struct pkt **pkt,
 	luaL_checkstack(L, 1, "OOM");
 	lua_getglobal(L, "loop");
 
-	if (lua_isnil(L, -1))
+	if (caa_unlikely(lua_isnil(L, -1)))
 		goto error;
 
 	luaL_checkstack(L, 1, "OOM");
@@ -150,7 +152,7 @@ int script_loop(void *L, struct pktizr_args *args, struct pkt **pkt,
 	lua_pushinteger(L, dport);
 
 	rc = lua_pcall(L, 2, LUA_MULTRET, 0);
-	if (rc != 0) {
+	if (caa_unlikely(rc != 0)) {
 		const char *err = "unknown error";
 		if (lua_type(L, -1) == LUA_TSTRING)
 			err = lua_tostring(L, -1);

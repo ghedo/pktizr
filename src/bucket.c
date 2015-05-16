@@ -62,7 +62,7 @@ void bucket_consume(struct bucket *t) {
 
 	t->tokens += tokens;
 
-	if (t->tokens > t->rate)
+	if (caa_unlikely(t->tokens > t->rate))
 		t->tokens = t->rate;
 
 	t->timestamp = now;
