@@ -36,8 +36,13 @@
 
 struct netdev *netdev_open_sock(const char *dev_name);
 struct netdev *netdev_open_pcap(const char *dev_name);
+struct netdev *netdev_open_pfring(const char *dev_name);
 
 struct netdev *netdev_open(const char *dev_name) {
+#ifdef HAVE_PFRING_H
+	return netdev_open_pfring(dev_name);
+#endif
+
 #ifdef HAVE_PCAP_H
 	return netdev_open_pcap(dev_name);
 #endif

@@ -31,6 +31,9 @@ def options(opt):
 	opt.add_option('--sanitize', action='store', default=None,
 	               help='enable specified sanotizer (address, thread, ...)')
 
+	opt.add_option('--pfring', action='store', default=None,
+	               help='path to PF_RING root')
+
 def configure(cfg):
 	def my_check_cc(ctx, dep, **kw_ext):
 		kw_ext['uselib_store'] = dep
@@ -95,6 +98,21 @@ def configure(cfg):
 	my_check_cc(cfg, 'af_pkt',
 	            header_name='linux/if_packet.h', mandatory=False)
 
+	if cfg.options.pfring:
+		pfring_lib  = cfg.options.pfring + '/userland/lib'
+		pfring_kern = cfg.options.pfring + '/kernel'
+
+		cfg.env.LIBPATH_pf_ring = [pfring_lib]
+		cfg.env.INCLUDES_pf_ring = [pfring_lib, pfring_kern]
+
+		# numa
+		my_check_cc(cfg, 'numa', lib='numa', mandatory=False)
+
+		# PF_RING
+		my_check_cc(cfg, 'pf_ring', lib='pfring',
+			    use=['pf_ring', 'numa', 'pcap'],
+			    header_name='pfring.h', mandatory=False)
+
 	# sphinx
 	cfg.find_program('sphinx-build', mandatory=False)
 
@@ -145,6 +163,7 @@ def build(bld):
 		( 'src/netdev.c',                          ),
 		( 'src/netdev_pcap.c',          'pcap'     ),
 		( 'src/netdev_sock.c',          'af_pkt'   ),
+		( 'src/netdev_pfring.c',        'pf_ring'  ),
 		( 'src/pkt.c'                              ),
 		( 'src/pkt_arp.c'                          ),
 		( 'src/pkt_chksum.c'                       ),
