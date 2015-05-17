@@ -89,17 +89,14 @@ void pkt_build_arp(struct pkt *p, uint16_t hwtype, uint16_t ptype, uint16_t op,
 
 void pkt_pack_arp(struct pkt *p, uint8_t *buf,size_t len) {
 	size_t i = 0;
-	struct arp_hdr out;
+	struct arp_hdr *out = (struct arp_hdr *) buf;
 
-	memset(&out, 0, sizeof(out));
+	out->hwlen  = p->p.arp.hwlen;
+	out->plen   = p->p.arp.plen;
+	out->hwtype = htons(p->p.arp.hwtype);
+	out->ptype  = htons(p->p.arp.ptype);
+	out->op     = htons(p->p.arp.op);
 
-	out.hwlen  = p->p.arp.hwlen;
-	out.plen   = p->p.arp.plen;
-	out.hwtype = htons(p->p.arp.hwtype);
-	out.ptype  = htons(p->p.arp.ptype);
-	out.op     = htons(p->p.arp.op);
-
-	memcpy(buf + i, &out, 8);
 	i += 8;
 
 	memcpy(buf + i, p->p.arp.hwsrc, p->p.arp.hwlen);

@@ -40,8 +40,6 @@
 void pkt_pack_icmp(struct pkt *p, uint8_t *buf, size_t len) {
 	struct icmp_hdr *out = (struct icmp_hdr *) buf;
 
-	memset(out, 0, sizeof(*out));
-
 	out->type   = p->p.icmp.type;
 	out->code   = p->p.icmp.code;
 	out->chksum = 0;

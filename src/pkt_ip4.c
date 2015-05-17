@@ -38,25 +38,21 @@
 #include "pkt.h"
 
 void pkt_pack_ip4(struct pkt *p, uint8_t *buf, size_t len) {
-	struct ip4_hdr out;
+	struct ip4_hdr *out = (struct ip4_hdr *) buf;
 
-	memset(&out, 0, sizeof(out));
+	out->version  = p->p.ip4.version;
+	out->ihl      = p->p.ip4.ihl;
+	out->tos      = p->p.ip4.tos;
+	out->len      = htons(p->p.ip4.len);
+	out->id       = htons(p->p.ip4.id);
+	out->frag_off = htons(p->p.ip4.frag_off);
+	out->ttl      = p->p.ip4.ttl;
+	out->proto    = p->p.ip4.proto;;
+	out->chksum   = 0;
+	out->src      = p->p.ip4.src;
+	out->dst      = p->p.ip4.dst;
 
-	out.version  = p->p.ip4.version;
-	out.ihl      = p->p.ip4.ihl;
-	out.tos      = p->p.ip4.tos;
-	out.len      = htons(p->p.ip4.len);
-	out.id       = htons(p->p.ip4.id);
-	out.frag_off = htons(p->p.ip4.frag_off);
-	out.ttl      = p->p.ip4.ttl;
-	out.proto    = p->p.ip4.proto;;
-	out.chksum   = 0;
-	out.src      = p->p.ip4.src;
-	out.dst      = p->p.ip4.dst;
-
-	out.chksum   = pkt_chksum((uint8_t *) &out, sizeof(out), 0);
-
-	memcpy(buf, &out, sizeof(out));
+	out->chksum   = pkt_chksum(buf, sizeof(*out), 0);
 }
 
 int pkt_unpack_ip4(struct pkt *p, uint8_t *buf, size_t len) {

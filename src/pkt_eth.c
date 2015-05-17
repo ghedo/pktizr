@@ -51,14 +51,12 @@ void pkt_build_eth(struct pkt *p, uint8_t *src, uint8_t *dst, uint16_t type) {
 }
 
 void pkt_pack_eth(struct pkt *p, uint8_t *buf, size_t len) {
-	struct eth_hdr out;
+	struct eth_hdr *out = (struct eth_hdr *) buf;
 
-	out.type = htons(p->p.eth.type);
+	memcpy(out->src, p->p.eth.src, 6);
+	memcpy(out->dst, p->p.eth.dst, 6);
 
-	memcpy(out.src, p->p.eth.src, 6);
-	memcpy(out.dst, p->p.eth.dst, 6);
-
-	memcpy(buf, &out, sizeof(out));
+	out->type = htons(p->p.eth.type);
 }
 
 int pkt_unpack_eth(struct pkt *p, uint8_t *buf, size_t len) {

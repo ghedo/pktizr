@@ -41,8 +41,6 @@ void pkt_pack_tcp(struct pkt *p, uint8_t *buf, size_t len) {
 	uint32_t csum = 0;
 	struct tcp_hdr *out = (struct tcp_hdr *) buf;
 
-	memset(out, 0, sizeof(*out));
-
 	out->sport   = htons(p->p.tcp.sport);
 	out->dport   = htons(p->p.tcp.dport);
 	out->seq     = htonl(p->p.tcp.seq);
