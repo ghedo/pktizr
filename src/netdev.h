@@ -29,16 +29,31 @@
  */
 
 struct netdev {
-	int fd;
-	void *p;
-
-	uint8_t *(*get_buf)(struct netdev *, size_t *);
-	void (*inject)(struct netdev *, uint8_t *, size_t);
-
-	const uint8_t *(*capture)(struct netdev *, int *);
-	void (*release)(struct netdev *);
-
-	void (*close)(struct netdev *);
+	const struct netdev_driver *driver;
+	void *priv;
 };
 
-struct netdev *netdev_open(const char *dev_name);
+struct netdev_driver {
+	const char *name;
+	size_t priv_size;
+
+	void (*open)(void *priv, const char *dev_name);
+
+	uint8_t *(*get_buf)(void *, size_t *);
+	void (*inject)(void *, uint8_t *, size_t);
+
+	const uint8_t *(*capture)(void *, int *);
+	void (*release)(void *);
+
+	void (*close)(void *);
+};
+
+struct netdev *netdev_open(const char *name, const char *dev_name);
+
+uint8_t *netdev_get_buf(struct netdev *n, size_t *len);
+void netdev_inject(struct netdev *n, uint8_t *buf, size_t len);
+
+const uint8_t *netdev_capture(struct netdev *n, int *len);
+void netdev_release(struct netdev *n);
+
+void netdev_close(struct netdev *n);

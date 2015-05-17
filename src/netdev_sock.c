@@ -48,118 +48,29 @@
 
 #define RING_BLOCK_SIZE (1 << 12)
 
-static uint8_t *rx_ring = NULL, *tx_ring = NULL;
+struct priv {
+	int fd;
 
-static int rx_ring_off = 0, tx_ring_off = 0;
+	uint8_t *rx_ring;
+	uint8_t *tx_ring;
 
-static int ring_hdrlen = sizeof(struct tpacket2_hdr);
+	int rx_ring_off;
+	int tx_ring_off;
 
-static uint8_t *netdev_get_buf_sock(struct netdev *n, size_t *len) {
-	int rc;
-
-	struct pollfd pfd;
-
-	uint8_t *base = tx_ring + (tx_ring_off * RING_FRAME_SIZE);
-	struct tpacket2_hdr *hdr = (struct tpacket2_hdr *) base;
-
-	memset(&pfd, 0, sizeof(pfd));
-	pfd.fd      = n->fd;
-	pfd.events  = POLLIN | POLLERR;
-	pfd.revents = 0;
-
-	while (hdr->tp_status != TP_STATUS_AVAILABLE) {
-		rc = poll(&pfd, 1, 10);
-		if ((rc < 0) && (errno != EINTR))
-			sysf_printf("poll()");
-	}
-
-	tx_ring_off = (tx_ring_off + 1) % RING_FRAME_NR;
-
-	*len = RING_FRAME_SIZE;
-
-	return base + TPACKET_ALIGN(ring_hdrlen);
-}
-
-static void netdev_inject_sock(struct netdev *n, uint8_t *buf, size_t len) {
-	int rc;
-
-	uint8_t *base = buf - TPACKET_ALIGN(ring_hdrlen);
-	struct tpacket2_hdr *hdr = (struct tpacket2_hdr *) base;
-
-	hdr->tp_len    = len;
-	hdr->tp_status = TP_STATUS_SEND_REQUEST;
-
-	rc = sendto(n->fd, NULL, 0, MSG_DONTWAIT, NULL, 0);
-	if (rc < 0)
-		sysf_printf("sendto()");
-}
-
-static const uint8_t *netdev_capture_sock(struct netdev *n, int *len) {
-	int rc;
-
-	struct pollfd pfd;
-
-	uint8_t *base = rx_ring + (rx_ring_off * RING_FRAME_SIZE);
-	struct tpacket2_hdr *hdr = (struct tpacket2_hdr *) base;
-
-	memset(&pfd, 0, sizeof(pfd));
-	pfd.fd      = n->fd;
-	pfd.events  = POLLIN | POLLERR;
-	pfd.revents = 0;
-
-	while (!(hdr->tp_status & TP_STATUS_USER)) {
-		rc = poll(&pfd, 1, 10);
-		if ((rc < 0) && (errno != EINTR))
-			sysf_printf("poll()");
-
-		if (rc == 0)
-			return NULL;
-	}
-
-	if (hdr->tp_status & TP_STATUS_COPY)
-		return NULL;
-
-	if (hdr->tp_status & TP_STATUS_LOSING)
-		return NULL;
-
-	*len = hdr->tp_len;
-
-	return base + hdr->tp_mac;
-}
-
-static void netdev_release_sock(struct netdev *n) {
-	uint8_t *base = rx_ring + (rx_ring_off * RING_FRAME_SIZE);
-	struct tpacket2_hdr *hdr = (struct tpacket2_hdr *) base;
-
-	hdr->tp_status = TP_STATUS_KERNEL;
-
-	rx_ring_off = (rx_ring_off + 1) & (RING_FRAME_NR - 1);
-}
-
-static void netdev_close_sock(struct netdev *n) {
-	closep(&n->fd);
-}
-
-static struct netdev netdev_sock = {
-	.p       = NULL,
-	.fd      = 0,
-
-	.get_buf = netdev_get_buf_sock,
-	.inject  = netdev_inject_sock,
-
-	.capture = netdev_capture_sock,
-	.release = netdev_release_sock,
-
-	.close   = netdev_close_sock,
+	int ring_hdrlen;
 };
 
-struct netdev *netdev_open_sock(const char *dev_name) {
+static void netdev_open_sock(void *p, const char *dev_name) {
 	int rc, fd;
+
+	struct priv *priv = p;
 
 	int vers = TPACKET_V2;
 
 	struct tpacket_req tp;
 	struct sockaddr_ll dev_addr;
+
+	priv->ring_hdrlen = sizeof(struct tpacket2_hdr);
 
 	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
 	if (fd < 0)
@@ -200,16 +111,125 @@ struct netdev *netdev_open_sock(const char *dev_name) {
 	if (rc < 0)
 		sysf_printf("getsockopt(PACKET_HDRLEN)");
 
-	ring_hdrlen = vers;
+	priv->ring_hdrlen = vers;
 
-	rx_ring = mmap(0, tp.tp_block_size * tp.tp_block_nr * 2,
-                       PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-	tx_ring = rx_ring + tp.tp_block_size * tp.tp_block_nr;
+	priv->rx_ring = mmap(0, tp.tp_block_size * tp.tp_block_nr * 2,
+                             PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+	priv->tx_ring = priv->rx_ring + tp.tp_block_size * tp.tp_block_nr;
 
-	if (!rx_ring)
+	if (!priv->rx_ring)
 		fail_printf("EOF");
 
-	netdev_sock.fd = fd;
-
-	return &netdev_sock;
+	priv->fd = fd;
 }
+
+static uint8_t *netdev_get_buf_sock(void *p, size_t *len) {
+	int rc;
+
+	struct pollfd pfd;
+
+	struct priv *priv = p;
+
+	uint8_t *base = priv->tx_ring + (priv->tx_ring_off * RING_FRAME_SIZE);
+	struct tpacket2_hdr *hdr = (struct tpacket2_hdr *) base;
+
+	memset(&pfd, 0, sizeof(pfd));
+	pfd.fd      = priv->fd;
+	pfd.events  = POLLIN | POLLERR;
+	pfd.revents = 0;
+
+	while (hdr->tp_status != TP_STATUS_AVAILABLE) {
+		rc = poll(&pfd, 1, 10);
+		if ((rc < 0) && (errno != EINTR))
+			sysf_printf("poll()");
+	}
+
+	priv->tx_ring_off = (priv->tx_ring_off + 1) % RING_FRAME_NR;
+
+	*len = RING_FRAME_SIZE;
+
+	return base + TPACKET_ALIGN(priv->ring_hdrlen);
+}
+
+static void netdev_inject_sock(void *p, uint8_t *buf, size_t len) {
+	int rc;
+
+	struct priv *priv = p;
+
+	uint8_t *base = buf - TPACKET_ALIGN(priv->ring_hdrlen);
+	struct tpacket2_hdr *hdr = (struct tpacket2_hdr *) base;
+
+	hdr->tp_len    = len;
+	hdr->tp_status = TP_STATUS_SEND_REQUEST;
+
+	rc = sendto(priv->fd, NULL, 0, MSG_DONTWAIT, NULL, 0);
+	if (rc < 0)
+		sysf_printf("sendto()");
+}
+
+static const uint8_t *netdev_capture_sock(void *p, int *len) {
+	int rc;
+
+	struct pollfd pfd;
+
+	struct priv *priv = p;
+
+	uint8_t *base = priv->rx_ring + (priv->rx_ring_off * RING_FRAME_SIZE);
+	struct tpacket2_hdr *hdr = (struct tpacket2_hdr *) base;
+
+	memset(&pfd, 0, sizeof(pfd));
+	pfd.fd      = priv->fd;
+	pfd.events  = POLLIN | POLLERR;
+	pfd.revents = 0;
+
+	while (!(hdr->tp_status & TP_STATUS_USER)) {
+		rc = poll(&pfd, 1, 10);
+		if ((rc < 0) && (errno != EINTR))
+			sysf_printf("poll()");
+
+		if (rc == 0)
+			return NULL;
+	}
+
+	if (hdr->tp_status & TP_STATUS_COPY)
+		return NULL;
+
+	if (hdr->tp_status & TP_STATUS_LOSING)
+		return NULL;
+
+	*len = hdr->tp_len;
+
+	return base + hdr->tp_mac;
+}
+
+static void netdev_release_sock(void *p) {
+	struct priv *priv = p;
+
+	uint8_t *base = priv->rx_ring + (priv->rx_ring_off * RING_FRAME_SIZE);
+	struct tpacket2_hdr *hdr = (struct tpacket2_hdr *) base;
+
+	hdr->tp_status = TP_STATUS_KERNEL;
+
+	priv->rx_ring_off = (priv->rx_ring_off + 1) & (RING_FRAME_NR - 1);
+}
+
+static void netdev_close_sock(void *p) {
+	struct priv *priv = p;
+	closep(&priv->fd);
+}
+
+const struct netdev_driver netdev_sock = {
+	.name    = "sock",
+
+	.priv_size = sizeof(struct priv),
+
+	.open    = netdev_open_sock,
+
+	.get_buf = netdev_get_buf_sock,
+	.inject  = netdev_inject_sock,
+
+	.capture = netdev_capture_sock,
+	.release = netdev_release_sock,
+
+	.close   = netdev_close_sock,
+};

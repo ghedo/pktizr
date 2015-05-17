@@ -55,7 +55,7 @@
 #include "pktizr.h"
 #include "script.h"
 
-static const char *short_opts = "S:p:r:s:w:c:l:g:qh?";
+static const char *short_opts = "S:p:r:s:w:c:l:g:n:qh?";
 
 static bool stop = false;
 
@@ -69,6 +69,8 @@ static struct option long_opts[] = {
 
 	{ "local-addr",  required_argument, NULL, 'l' },
 	{ "gateway-addr",required_argument, NULL, 'g' },
+
+	{ "netdev",      required_argument, NULL, 'n' },
 
 	{ "quiet",       no_argument,       NULL, 'q' },
 
@@ -101,6 +103,8 @@ int main(int argc, char *argv[]) {
 
 	_free_ char *local_addr = NULL;
 	_free_ char *gateway_addr = NULL;
+
+	_free_ char *netdev = NULL;
 
 	if (argc < 4) {
 		help();
@@ -171,6 +175,11 @@ int main(int argc, char *argv[]) {
 			gateway_addr = strdup(optarg);
 			break;
 
+		case 'n':
+			freep(&netdev);
+			netdev = strdup(optarg);
+			break;
+
 		case 'q':
 			args->quiet = true;
 			break;
@@ -207,7 +216,7 @@ int main(int argc, char *argv[]) {
 			fail_printf("Error resolving local IP");
 	}
 
-	args->netdev = netdev_open(route.if_name);
+	args->netdev = netdev_open(netdev, route.if_name);
 	if (!args->netdev)
 		fail_printf("Error opening netdev");
 
@@ -231,7 +240,7 @@ int main(int argc, char *argv[]) {
 	pthread_join(args->recv_thread, NULL);
 	pthread_join(args->loop_thread, NULL);
 
-	args->netdev->close(args->netdev);
+	netdev_close(args->netdev);
 
 	range_list_free(args->targets);
 	range_list_free(args->ports);
@@ -258,7 +267,7 @@ static void *recv_cb(void *p) {
 		int rc, len;
 		struct pkt *pkt = NULL;
 
-		const uint8_t *buf = args->netdev->capture(args->netdev, &len);
+		const uint8_t *buf = netdev_capture(args->netdev, &len);
 		if (buf == NULL)
 			continue;
 
@@ -273,7 +282,7 @@ static void *recv_cb(void *p) {
 		args->pkt_recv++;
 
 done:
-		args->netdev->release(args->netdev);
+		netdev_release(args->netdev);
 	}
 
 	script_close(L);
@@ -285,13 +294,13 @@ int pkt_send(struct pktizr_args *args, struct pkt *pkt) {
 	uint8_t *buf;
 	size_t   len;
 
-	buf = args->netdev->get_buf(args->netdev, &len);
+	buf = netdev_get_buf(args->netdev, &len);
 
 	int pkt_len = pkt_pack(buf, len, pkt);
 	if (pkt_len < 0)
 		return -1;
 
-	args->netdev->inject(args->netdev, buf, pkt_len);
+	netdev_inject(args->netdev, buf, pkt_len);
 	args->pkt_sent++;
 
 	return 0;

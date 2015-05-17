@@ -90,7 +90,7 @@ int resolv_addr_to_mac(struct netdev *netdev,
 
 	pkt_build_eth(eth, shost, (uint8_t *) "\xff\xff\xff\xff\xff\xff", 0);
 
-	buf = netdev->get_buf(netdev, &blen);
+	buf = netdev_get_buf(netdev, &blen);
 
 	int len = pkt_pack(buf, blen, pkt);
 	pkt_free_all(arp);
@@ -102,7 +102,7 @@ again:
 	if (tries-- <= 0)
 		return -1;
 
-	netdev->inject(netdev, buf, len);
+	netdev_inject(netdev, buf, len);
 
 	start = time_now();
 
@@ -110,7 +110,7 @@ again:
 		int rsp_len, n;
 		struct pkt *rsp_pkt = NULL;
 
-		const uint8_t *rsp = netdev->capture(netdev, &rsp_len);
+		const uint8_t *rsp = netdev_capture(netdev, &rsp_len);
 		if ((time_now() - start) > timeout)
 			goto again;
 
@@ -134,13 +134,13 @@ again:
 
 			pkt_free_all(rsp_pkt);
 
-			netdev->release(netdev);
+			netdev_release(netdev);
 			break;
 		}
 
 done:
 		pkt_free_all(rsp_pkt);
-		netdev->release(netdev);
+		netdev_release(netdev);
 	}
 
 	return 0;

@@ -55,6 +55,21 @@ interface will be used.
 Specify the gateway IP address. By default the configured address of the network
 interface's default route will be used.
 
+.. option:: -n, --netdev=<dev>
+
+Specify the netdev driver to use, instead of the default one.
+
+Available netdev drivers are:
+
+``pfring`` (Linux only)
+    PF_RING netdev driver.
+
+``pcap``
+    libpcap netdev driver.
+
+``sock`` (Linux only)
+    AF_PACKET netdev driver.
+
 .. option:: -q, --quiet
 
 Don't show the status line.

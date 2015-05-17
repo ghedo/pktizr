@@ -30,27 +30,69 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "netdev.h"
 #include "printf.h"
+#include "util.h"
 
-struct netdev *netdev_open_sock(const char *dev_name);
-struct netdev *netdev_open_pcap(const char *dev_name);
-struct netdev *netdev_open_pfring(const char *dev_name);
+extern const struct netdev_driver netdev_pfring;
+extern const struct netdev_driver netdev_pcap;
+extern const struct netdev_driver netdev_sock;
 
-struct netdev *netdev_open(const char *dev_name) {
+static const struct netdev_driver * const netdev_drivers[] = {
 #ifdef HAVE_PFRING_H
-	return netdev_open_pfring(dev_name);
+	&netdev_pfring,
 #endif
 
 #ifdef HAVE_PCAP_H
-	return netdev_open_pcap(dev_name);
+	&netdev_pcap,
 #endif
 
 #ifdef HAVE_LINUX_IF_PACKET_H
-	return netdev_open_sock(dev_name);
+	&netdev_sock,
 #endif
+	NULL,
+};
+
+struct netdev *netdev_open(const char *name, const char *dev_name) {
+	struct netdev *dev = malloc(sizeof(*dev));
+
+	for (size_t i = 0; netdev_drivers[i] != NULL; i++) {
+		const struct netdev_driver *cur = netdev_drivers[i];
+
+		if (!name || !strcmp(cur->name, name)) {
+			dev->driver = cur;
+			dev->priv   = calloc(1, cur->priv_size);
+
+			dev->driver->open(dev->priv, dev_name);
+			return dev;
+		}
+	}
 
 	fail_printf("No netdev implementation supported");
 	return NULL;
+}
+
+uint8_t *netdev_get_buf(struct netdev *dev, size_t *len) {
+	return dev->driver->get_buf(dev->priv, len);
+}
+
+void netdev_inject(struct netdev *dev, uint8_t *buf, size_t len) {
+	dev->driver->inject(dev->priv, buf, len);
+}
+
+const uint8_t *netdev_capture(struct netdev *dev, int *len) {
+	return dev->driver->capture(dev->priv, len);
+}
+
+void netdev_release(struct netdev *dev) {
+	dev->driver->release(dev->priv);
+}
+
+void netdev_close(struct netdev *dev) {
+	dev->driver->close(dev->priv);
+
+	freep(&dev->priv);
+	freep(&dev);
 }

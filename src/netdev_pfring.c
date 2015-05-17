@@ -41,24 +41,45 @@
 #include "printf.h"
 #include "util.h"
 
-static uint8_t *pfring_buf     = NULL;
-static size_t   pfring_buf_len = 0;
+struct priv {
+	pfring  *p;
+	uint8_t *buf;
+	size_t   buf_len;
+};
 
-static uint8_t *netdev_get_buf_pfring(struct netdev *n, size_t *len) {
-	*len = pfring_buf_len;
-	return pfring_buf;
+static void netdev_open_pfring(void *p, const char *dev_name) {
+	struct priv *priv = p;
+
+	priv->p = pfring_open(dev_name, 1500, 0);
+	if (priv->p == NULL)
+		fail_printf("Error opening pfring");
+
+	pfring_set_application_name(priv->p, "pktizr");
+	pfring_enable_ring(priv->p);
+
+	priv->buf_len = 65535;
+	priv->buf     = malloc(priv->buf_len);
 }
 
-static void netdev_inject_pfring(struct netdev *n, uint8_t *buf, size_t len) {
-	while (pfring_send(n->p, (char *) buf, len, 1) < 0)
+static uint8_t *netdev_get_buf_pfring(void *p, size_t *len) {
+	struct priv *priv = p;
+	*len = priv->buf_len;
+	return priv->buf;
+}
+
+static void netdev_inject_pfring(void *p, uint8_t *buf, size_t len) {
+	struct priv *priv = p;
+	while (pfring_send(priv->p, (char *) buf, len, 1) < 0)
 		caa_cpu_relax();
 }
 
-static const uint8_t *netdev_capture_pfring(struct netdev *n, int *len) {
+static const uint8_t *netdev_capture_pfring(void *p, int *len) {
 	const uint8_t *buf;
 	struct pfring_pkthdr pkt_hdr;
 
-	int rc = pfring_recv(n->p, (unsigned char **) &buf, 0, &pkt_hdr, 0);
+	struct priv *priv = p;
+
+	int rc = pfring_recv(priv->p, (unsigned char **) &buf, 0, &pkt_hdr, 0);
 	switch (rc) {
 	case -1:
 		fail_printf("Error capturing packet");
@@ -75,18 +96,24 @@ static const uint8_t *netdev_capture_pfring(struct netdev *n, int *len) {
 	return NULL;
 }
 
-static void netdev_release_pfring(struct netdev *n) {
+static void netdev_release_pfring(void *p) {
 }
 
-static void netdev_close_pfring(struct netdev *n) {
-	pfring_close(n->p);
+static void netdev_close_pfring(void *p) {
+	struct priv *priv = p;
 
-	freep(&pfring_buf);
-	pfring_buf_len = 0;
+	pfring_close(priv->p);
+
+	freep(&priv->buf);
+	priv->buf_len = 0;
 }
 
-static struct netdev netdev_pfring = {
-	.p       = NULL,
+const struct netdev_driver netdev_pfring = {
+	.name    = "pfring",
+
+	.priv_size = sizeof(struct priv),
+
+	.open    = netdev_open_pfring,
 
 	.get_buf = netdev_get_buf_pfring,
 	.inject  = netdev_inject_pfring,
@@ -96,19 +123,3 @@ static struct netdev netdev_pfring = {
 
 	.close   = netdev_close_pfring,
 };
-
-struct netdev *netdev_open_pfring(const char *dev_name) {
-	pfring *ring = pfring_open(dev_name, 1500, 0);
-	if (ring == NULL)
-		fail_printf("Error opening pfring");
-
-	pfring_set_application_name(ring, "pktizr");
-	pfring_enable_ring(ring);
-
-	pfring_buf_len = 65535;
-	pfring_buf     = malloc(pfring_buf_len);
-
-	netdev_pfring.p = ring;
-
-	return &netdev_pfring;
-}
