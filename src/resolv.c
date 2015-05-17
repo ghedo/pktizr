@@ -139,6 +139,7 @@ again:
 		}
 
 done:
+		pkt_free_all(rsp_pkt);
 		netdev->release(netdev);
 	}
 
