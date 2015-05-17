@@ -105,13 +105,13 @@ def configure(cfg):
 		cfg.env.LIBPATH_pf_ring = [pfring_lib]
 		cfg.env.INCLUDES_pf_ring = [pfring_lib, pfring_kern]
 
-		# numa
-		my_check_cc(cfg, 'numa', lib='numa', mandatory=False)
+	# numa
+	my_check_cc(cfg, 'numa', lib='numa', mandatory=False)
 
-		# PF_RING
-		my_check_cc(cfg, 'pf_ring', lib='pfring',
-			    use=['pf_ring', 'numa', 'pcap'],
-			    header_name='pfring.h', mandatory=False)
+	# PF_RING
+	my_check_cc(cfg, 'pf_ring', lib='pfring',
+		    use=['pf_ring', 'numa', 'pcap'],
+		    header_name='pfring.h', mandatory=False)
 
 	# sphinx
 	cfg.find_program('sphinx-build', mandatory=False)
