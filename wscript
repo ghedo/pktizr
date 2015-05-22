@@ -104,6 +104,7 @@ def configure(cfg):
 
 		cfg.env.LIBPATH_pf_ring = [pfring_lib]
 		cfg.env.INCLUDES_pf_ring = [pfring_lib, pfring_kern]
+		cfg.env.RPATH_pf_ring = [pfring_lib]
 
 	# numa
 	my_check_cc(cfg, 'numa', lib='numa', mandatory=False)
