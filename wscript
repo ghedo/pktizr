@@ -255,9 +255,6 @@ def build_fuzz(bld):
 		'src/pkt_udp.c',
 		'src/printf.c',
 		'src/util.c',
-
-		# siphash
-		'deps/siphash/siphash24.c',
 	]
 
 	bld.env.append_value('INCLUDES', ['deps', 'src'])
