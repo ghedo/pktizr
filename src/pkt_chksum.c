@@ -69,8 +69,6 @@ uint32_t pkt_pseudo_chksum(struct ip4_hdr *h) {
 
 	uint16_t len = h->len - (h->ihl * 4);
 
-	memset(&hdr, 0, sizeof(hdr));
-
 	hdr.saddr  = h->src;
 	hdr.daddr  = h->dst;
 	hdr.zero   = 0;
