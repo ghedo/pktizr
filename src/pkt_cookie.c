@@ -30,6 +30,13 @@
 
 #include <stdint.h>
 
+/*
+ * Python randomized hash implementation as described at
+ * https://www.python.org/dev/peps/pep-0456/#current-implementation-with-modified-fnv
+ *
+ * It is *not* a cryptographic hash function, but it doesn't really matter as
+ * far as pktizr is concerned and it's faster than siphash.
+ */
 static uint64_t pyrhash(const uint8_t *k, const uint8_t *m, const uint64_t n) {
 	register int64_t len;
 	register uint64_t x;
