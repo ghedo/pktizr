@@ -125,7 +125,7 @@ int main(int argc, char *argv[]) {
 	args->wait    = 5;
 	args->count   = 1;
 	args->script  = NULL;
-	args->quiet   = false;
+	args->quiet   = !isatty(STDERR_FILENO);
 	args->done    = false;
 	args->stop    = false;
 
@@ -342,7 +342,9 @@ static void *loop_cb(void *p) {
 	if (pthread_setname_np(pthread_self(), "pktizr: loop"))
 		fail_printf("Error setting thread name");
 
-	printf("Scanning %zu ports on %zu hosts...\n", prt_cnt, tgt_cnt);
+	if (!args->quiet)
+		printf("Scanning %zu ports on %zu hosts...\n",
+		       prt_cnt, tgt_cnt);
 
 	pthread_mutex_lock(&args->loop_mutex);
 	pthread_cond_signal(&args->loop_started);
@@ -405,7 +407,8 @@ static void status_line(struct pktizr_args *args) {
 
 	stop = false;
 
-	fprintf(stderr, CURSOR_HIDE);
+	if (!args->quiet)
+		fprintf(stderr, CURSOR_HIDE);
 
 	while (1) {
 		uint64_t now   = time_now();
@@ -441,17 +444,22 @@ static void status_line(struct pktizr_args *args) {
 	args->stop = stop = false;
 
 	for (; args->wait > 0 && !stop; args->wait--) {
-		fprintf(stderr, LINE_CLEAR);
-		fprintf(stderr, "Waiting for %zu seconds...", args->wait);
+		if (!args->quiet) {
+			fprintf(stderr, LINE_CLEAR);
+			fprintf(stderr, "Waiting for %zu seconds...",
+			        args->wait);
+		}
 
 		time_sleep(1e6);
 
-		fprintf(stderr, "\r");
+		if (!args->quiet)
+			fprintf(stderr, "\r");
 	}
 
 	args->stop = true;
 
-	fprintf(stderr, "\r" LINE_CLEAR CURSOR_SHOW);
+	if (!args->quiet)
+		fprintf(stderr, "\r" LINE_CLEAR CURSOR_SHOW);
 }
 
 static void handle_term_sig(int sig) {

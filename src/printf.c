@@ -98,9 +98,12 @@ static void do_log(const char *pre, const char *fmt, va_list args, bool cursor) 
 	int rc;
 	static char format[LINE_MAX];
 
-	rc = snprintf(format, LINE_MAX, "\r" LINE_CLEAR "%s%s%s\n",
-	              cursor ? CURSOR_SHOW  : "",
-	              use_syslog ? "" : pre, fmt);
+	if (use_syslog || !isatty(STDERR_FILENO))
+		rc = snprintf(format, LINE_MAX, "%s\n", fmt);
+	else
+		rc = snprintf(format, LINE_MAX, "\r" LINE_CLEAR "%s%s%s\n",
+			      cursor ? CURSOR_SHOW  : "", pre, fmt);
+
 	if (rc < 0) fail_printf("EIO");
 
 	if (use_syslog == 1)
