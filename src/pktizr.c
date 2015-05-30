@@ -517,6 +517,8 @@ static inline void help(void) {
 	CMD_HELP("--local-addr", "-l", "Use the given IP address as source");
 	CMD_HELP("--gateway-addr", "-g", "Route the packets to the given gateway");
 
+	CMD_HELP("--netdev", "-n", "Use the specified netdev driver");
+
 	CMD_HELP("--randomize", "-R", "Randomize the target address/port order");
 
 	CMD_HELP("--quiet", "-q", "Don't show the status line");
