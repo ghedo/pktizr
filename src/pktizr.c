@@ -382,7 +382,7 @@ script:
 
 		rc = script_loop(L, args, &pkt, daddr, dport);
 		if (caa_unlikely(rc < 0))
-			goto done;
+			continue;
 
 		pkt_send(args, pkt);
 

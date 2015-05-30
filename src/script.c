@@ -160,6 +160,9 @@ int script_loop(void *L, struct pktizr_args *args, struct pkt **pkt,
 		fail_printf("Error running script: %s", err);
 	}
 
+	if (caa_unlikely(lua_isnil(L, -1)))
+		goto error;
+
 	*pkt = pop_pkt(L, args);
 
 	assert(lua_gettop(L) == 0);
