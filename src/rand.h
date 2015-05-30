@@ -28,41 +28,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-struct pktizr_args {
-	struct range *targets;
-	struct range *ports;
-
-	struct netdev *netdev;
-
-	char *script;
-
-	uint64_t pkt_count;
-	uint64_t pkt_probe;
-	uint64_t pkt_recv;
-	uint64_t pkt_sent;
-
-	uint64_t rate;
+struct rand {
+	uint64_t range;
+	uint64_t a, b;
 	uint64_t seed;
-	uint64_t wait;
-	uint64_t count;
-
-	bool randomize;
-
-	pthread_t       recv_thread;
-	pthread_mutex_t recv_mutex;
-	pthread_cond_t  recv_started;
-
-	pthread_t       loop_thread;
-	pthread_mutex_t loop_mutex;
-	pthread_cond_t  loop_started;
-
-	struct queue queue;
-
-	uint32_t local_addr;
-	uint32_t gateway_addr;
-
-	uint8_t local_mac[6];
-	uint8_t gateway_mac[6];
-
-	bool done, stop, quiet;
+	unsigned rounds;
 };
+
+void rand_init(struct rand *r, uint64_t range, uint64_t seed);
+uint64_t rand_shuffle(struct rand *r, uint64_t m);

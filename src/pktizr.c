@@ -45,6 +45,7 @@
 
 #include "bucket.h"
 #include "netdev.h"
+#include "rand.h"
 #include "ranges.h"
 #include "resolv.h"
 #include "routes.h"
@@ -55,7 +56,7 @@
 #include "pktizr.h"
 #include "script.h"
 
-static const char *short_opts = "S:p:r:s:w:c:l:g:n:qh?";
+static const char *short_opts = "S:p:r:s:w:c:l:g:n:Rqh?";
 
 static bool stop = false;
 
@@ -71,6 +72,8 @@ static struct option long_opts[] = {
 	{ "gateway-addr",required_argument, NULL, 'g' },
 
 	{ "netdev",      required_argument, NULL, 'n' },
+
+	{ "randomize",   required_argument, NULL, 'R' },
 
 	{ "quiet",       no_argument,       NULL, 'q' },
 
@@ -163,6 +166,10 @@ int main(int argc, char *argv[]) {
 			args->count = strtoull(optarg, &end, 10);
 			if (*end != '\0')
 				fail_printf("Invalid wait value");
+			break;
+
+		case 'R':
+			args->randomize = true;
 			break;
 
 		case 'l':
@@ -325,6 +332,9 @@ static void *loop_cb(void *p) {
 	struct bucket bucket;
 	bucket_init(&bucket, args->rate);
 
+	struct rand rnd;
+	rand_init(&rnd, tot_cnt, args->seed);
+
 	args->pkt_count = tot_cnt;
 	args->pkt_sent  = 0;
 	args->pkt_probe = 0;
@@ -338,8 +348,9 @@ static void *loop_cb(void *p) {
 	pthread_cond_signal(&args->loop_started);
 	pthread_mutex_unlock(&args->loop_mutex);
 
-	/* TODO: randomize targets */
 	while (!args->done) {
+		uint64_t tgt;
+
 		uint32_t daddr;
 		uint16_t dport;
 
@@ -360,10 +371,12 @@ script:
 		if (caa_unlikely((i >= tot_cnt) || args->stop))
 			continue;
 
+		tgt = (args->randomize) ? rand_shuffle(&rnd, i) : i;
+
 		daddr = range_list_pick(args->targets,
-		                        (i % tgt_cnt) / args->count);
+		                        (tgt % tgt_cnt) / args->count);
 		dport = range_list_pick(args->ports,
-		                        (i / tgt_cnt) / args->count);
+		                        (tgt / tgt_cnt) / args->count);
 
 		i++;
 
@@ -492,6 +505,7 @@ static inline void help(void) {
 	CMD_HELP("--seed",  "-s", "Use the given number as seed value");
 	CMD_HELP("--wait",  "-w", "Wait the given amount of seconds after the scan is complete");
 	CMD_HELP("--count", "-c", "Send the given amount of duplicate packets");
+	CMD_HELP("--randomize", "-R", "Randomize the target address/port order");
 	CMD_HELP("--quiet", "-q", "Don't show the status line");
 
 	CMD_HELP("--local-addr", "-l", "Use the given IP address as source");

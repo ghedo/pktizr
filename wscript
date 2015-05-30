@@ -160,7 +160,7 @@ def build(bld):
 	sources = [
 		# sources
 		( 'src/bucket.c'                           ),
-		( 'src/pktizr.c'                             ),
+		( 'src/pktizr.c'                           ),
 		( 'src/netdev.c',                          ),
 		( 'src/netdev_pcap.c',          'pcap'     ),
 		( 'src/netdev_sock.c',          'af_pkt'   ),
@@ -176,6 +176,7 @@ def build(bld):
 		( 'src/pkt_tcp.c'                          ),
 		( 'src/pkt_udp.c'                          ),
 		( 'src/printf.c'                           ),
+		( 'src/rand.c'                             ),
 		( 'src/ranges.c'                           ),
 		( 'src/resolv.c'                           ),
 		( 'src/resolv_linux.c',         'os-linux' ),
