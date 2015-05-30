@@ -513,11 +513,13 @@ static inline void help(void) {
 	CMD_HELP("--seed",  "-s", "Use the given number as seed value");
 	CMD_HELP("--wait",  "-w", "Wait the given amount of seconds after the scan is complete");
 	CMD_HELP("--count", "-c", "Send the given amount of duplicate packets");
-	CMD_HELP("--randomize", "-R", "Randomize the target address/port order");
-	CMD_HELP("--quiet", "-q", "Don't show the status line");
 
 	CMD_HELP("--local-addr", "-l", "Use the given IP address as source");
 	CMD_HELP("--gateway-addr", "-g", "Route the packets to the given gateway");
+
+	CMD_HELP("--randomize", "-R", "Randomize the target address/port order");
+
+	CMD_HELP("--quiet", "-q", "Don't show the status line");
 
 	puts("");
 

@@ -47,6 +47,10 @@ The `syn.lua` script sends out TCP SYN packets and can be used to discover open
 ports on target hosts. In this case the port range is `1-65353` which means all
 ports on the targets will be scanned.
 
+By default pktizr will process the target IP addresses and ports in order, but
+it can also process them in random order in order to avoid overwhelming target
+networks/hosts. This is enabled by using the `-R` option.
+
 Note that by default pktizr sends packet at a rate of 100 packets per second, in
 order to avoid flooding the local network or the target hosts. You can specify a
 different value using the `-r` command-line option:
