@@ -44,6 +44,11 @@ Wait the given amount of seconds after the scan is complete [default: 5].
 
 Send the given amount of duplicate packets [default: 1].
 
+.. option:: -R, --randomize
+
+Randomize the target IP addresses and ports, instead of processing them in
+order.
+
 .. option:: -l, --local-addr=<addr>
 
 Specify the source IP address. This value can be accessed by scripts using the
@@ -54,6 +59,21 @@ interface will be used.
 
 Specify the gateway IP address. By default the configured address of the network
 interface's default route will be used.
+
+.. option:: -n, --netdev=<dev>
+
+Specify the netdev driver to use, instead of the default one.
+
+Available netdev drivers are:
+
+``pfring`` (Linux only)
+    PF_RING netdev driver.
+
+``pcap``
+    libpcap netdev driver.
+
+``sock`` (Linux only)
+    AF_PACKET netdev driver.
 
 .. option:: -q, --quiet
 
