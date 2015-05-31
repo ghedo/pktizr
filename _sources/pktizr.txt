@@ -44,10 +44,9 @@ Wait the given amount of seconds after the scan is complete [default: 5].
 
 Send the given amount of duplicate packets [default: 1].
 
-.. option:: -R, --randomize
+.. option:: -R, --shuffle
 
-Randomize the target IP addresses and ports, instead of processing them in
-order.
+Shuffle the target IP addresses and ports, instead of processing them in order.
 
 .. option:: -l, --local-addr=<addr>
 
