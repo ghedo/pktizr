@@ -32,9 +32,6 @@
  * Generalized-Feistel Cipher implementation as described in the paper
  * "Ciphers with Arbitrary Finite Domains" by John Black and Phillip Rogaway
  * http://www.cs.ucdavis.edu/~rogaway/papers/subset.pdf
- *
- * Essentially it "encrypts" an arbitrarily sized range into a permutation of
- * the same.
  */
 
 #include <stdint.h>
@@ -140,10 +137,11 @@ static inline uint64_t rand_do_shuffle(unsigned r, uint64_t a, uint64_t b,
 }
 
 uint64_t rand_shuffle(struct rand *r, uint64_t m) {
-	uint64_t c = rand_do_shuffle(r->rounds, r->a, r->b, m, r->seed);
+	uint64_t c = m;
 
-	while (c >= r->range)
+	do {
 		c = rand_do_shuffle(r->rounds, r->a, r->b,  c, r->seed);
+	} while (c >= r->range);
 
 	return c;
 }
