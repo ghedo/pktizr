@@ -45,7 +45,7 @@
 
 #include "bucket.h"
 #include "netdev.h"
-#include "rand.h"
+#include "shuffle.h"
 #include "ranges.h"
 #include "resolv.h"
 #include "routes.h"
@@ -332,8 +332,8 @@ static void *loop_cb(void *p) {
 	struct bucket bucket;
 	bucket_init(&bucket, args->rate);
 
-	struct rand rnd;
-	rand_init(&rnd, tot_cnt, args->seed);
+	struct shuffle rnd;
+	shuffle_init(&rnd, tot_cnt, args->seed);
 
 	args->pkt_count = tot_cnt;
 	args->pkt_sent  = 0;
@@ -373,7 +373,7 @@ script:
 		if (caa_unlikely((i >= tot_cnt) || args->stop))
 			continue;
 
-		tgt = (args->randomize) ? rand_shuffle(&rnd, i) : i;
+		tgt = (args->randomize) ? shuffle(&rnd, i) : i;
 
 		daddr = range_list_pick(args->targets,
 		                        (tgt % tgt_cnt) / args->count);

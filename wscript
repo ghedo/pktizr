@@ -176,7 +176,7 @@ def build(bld):
 		( 'src/pkt_tcp.c'                          ),
 		( 'src/pkt_udp.c'                          ),
 		( 'src/printf.c'                           ),
-		( 'src/rand.c'                             ),
+		( 'src/shuffle.c'                          ),
 		( 'src/ranges.c'                           ),
 		( 'src/resolv.c'                           ),
 		( 'src/resolv_linux.c',         'os-linux' ),

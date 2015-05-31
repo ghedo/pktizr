@@ -28,12 +28,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-struct rand {
+struct shuffle {
 	uint64_t range;
 	uint64_t a, b;
 	uint64_t seed;
 	unsigned rounds;
 };
 
-void rand_init(struct rand *r, uint64_t range, uint64_t seed);
-uint64_t rand_shuffle(struct rand *r, uint64_t m);
+void shuffle_init(struct shuffle *r, uint64_t range, uint64_t seed);
+uint64_t shuffle(struct shuffle *r, uint64_t m);

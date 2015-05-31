@@ -37,14 +37,14 @@
 #include <stdint.h>
 #include <math.h>
 
-#include "rand.h"
+#include "shuffle.h"
 
 #define ROUNDS 4
 
-static inline uint64_t rand_do_shuffle(unsigned r, uint64_t a, uint64_t b,
-                                       uint64_t m, uint64_t seed);
+static inline uint64_t do_shuffle(unsigned r, uint64_t a, uint64_t b,
+                                  uint64_t m, uint64_t seed);
 
-void rand_init(struct rand *r, uint64_t range, uint64_t seed) {
+void shuffle_init(struct shuffle *r, uint64_t range, uint64_t seed) {
 	double root = sqrt(range);
 
 	r->a = (uint64_t) (root - 1);
@@ -58,11 +58,11 @@ void rand_init(struct rand *r, uint64_t range, uint64_t seed) {
 	r->rounds = ROUNDS;
 }
 
-uint64_t rand_shuffle(struct rand *r, uint64_t m) {
+uint64_t shuffle(struct shuffle *r, uint64_t m) {
 	uint64_t c = m;
 
 	do {
-		c = rand_do_shuffle(r->rounds, r->a, r->b,  c, r->seed);
+		c = do_shuffle(r->rounds, r->a, r->b,  c, r->seed);
 	} while (c >= r->range);
 
 	return c;
@@ -130,8 +130,8 @@ static inline uint64_t F(uint64_t r, uint64_t R, uint64_t seed) {
 	return R;
 }
 
-static inline uint64_t rand_do_shuffle(unsigned r, uint64_t a, uint64_t b,
-                                       uint64_t m, uint64_t seed) {
+static inline uint64_t do_shuffle(unsigned r, uint64_t a, uint64_t b,
+                                  uint64_t m, uint64_t seed) {
 	uint64_t tmp;
 
 	uint64_t L = m % a;
