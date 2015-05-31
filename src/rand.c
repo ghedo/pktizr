@@ -41,6 +41,33 @@
 
 #define ROUNDS 4
 
+static inline uint64_t rand_do_shuffle(unsigned r, uint64_t a, uint64_t b,
+                                       uint64_t m, uint64_t seed);
+
+void rand_init(struct rand *r, uint64_t range, uint64_t seed) {
+	double root = sqrt(range);
+
+	r->a = (uint64_t) (root - 1);
+	r->b = (uint64_t) (root + 1);
+
+	while ((r->a * r->b) <= range)
+		r->b++;
+
+	r->range  = range;
+	r->seed   = seed;
+	r->rounds = ROUNDS;
+}
+
+uint64_t rand_shuffle(struct rand *r, uint64_t m) {
+	uint64_t c = m;
+
+	do {
+		c = rand_do_shuffle(r->rounds, r->a, r->b,  c, r->seed);
+	} while (c >= r->range);
+
+	return c;
+}
+
 const unsigned char sbox[256] = {
 	0x91, 0x58, 0xb3, 0x31, 0x6c, 0x33, 0xda, 0x88,
 	0x57, 0xdd, 0x8c, 0xf2, 0x29, 0x5a, 0x08, 0x9f,
@@ -78,20 +105,6 @@ const unsigned char sbox[256] = {
 	0x74, 0x4a, 0xa6, 0x5e, 0xd2, 0xe2, 0x4d, 0xf3,
 	0xf4, 0xc6, 0xbc, 0xa2, 0x51, 0x58, 0xe8, 0xae,
 };
-
-void rand_init(struct rand *r, uint64_t range, uint64_t seed) {
-	double root = sqrt(range);
-
-	r->a = (uint64_t) (root - 1);
-	r->b = (uint64_t) (root + 1);
-
-	while ((r->a * r->b) <= range)
-		r->b++;
-
-	r->range  = range;
-	r->seed   = seed;
-	r->rounds = ROUNDS;
-}
 
 static inline uint64_t F(uint64_t r, uint64_t R, uint64_t seed) {
 #define GETBYTE(R, n) ((((R) >> (n * 8)) ^ seed ^ r) & 0xFF)
@@ -134,14 +147,4 @@ static inline uint64_t rand_do_shuffle(unsigned r, uint64_t a, uint64_t b,
 
 	return (r & 1) ? a * L + R :
 	                 a * R + L;
-}
-
-uint64_t rand_shuffle(struct rand *r, uint64_t m) {
-	uint64_t c = m;
-
-	do {
-		c = rand_do_shuffle(r->rounds, r->a, r->b,  c, r->seed);
-	} while (c >= r->range);
-
-	return c;
 }
