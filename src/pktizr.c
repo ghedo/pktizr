@@ -73,7 +73,7 @@ static struct option long_opts[] = {
 
 	{ "netdev",      required_argument, NULL, 'n' },
 
-	{ "randomize",   required_argument, NULL, 'R' },
+	{ "shuffle",     required_argument, NULL, 'R' },
 
 	{ "quiet",       no_argument,       NULL, 'q' },
 
@@ -169,7 +169,7 @@ int main(int argc, char *argv[]) {
 			break;
 
 		case 'R':
-			args->randomize = true;
+			args->shuffle = true;
 			break;
 
 		case 'l':
@@ -373,7 +373,7 @@ script:
 		if (caa_unlikely((i >= tot_cnt) || args->stop))
 			continue;
 
-		tgt = (args->randomize) ? shuffle(&rnd, i) : i;
+		tgt = (args->shuffle) ? shuffle(&rnd, i) : i;
 
 		daddr = range_list_pick(args->targets,
 		                        (tgt % tgt_cnt) / args->count);
@@ -519,7 +519,7 @@ static inline void help(void) {
 
 	CMD_HELP("--netdev", "-n", "Use the specified netdev driver");
 
-	CMD_HELP("--randomize", "-R", "Randomize the target address/port order");
+	CMD_HELP("--shuffle", "-R", "Shuffle the target address/port order");
 
 	CMD_HELP("--quiet", "-q", "Don't show the status line");
 

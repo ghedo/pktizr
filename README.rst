@@ -49,7 +49,7 @@ ports on the targets will be scanned.
 
 By default pktizr will process the target IP addresses and ports in order, but
 it can also process them in random order in order to avoid overwhelming target
-networks/hosts. This is enabled by using the `-R` option.
+networks/hosts. This is enabled by using the `--shuffle` option.
 
 Note that by default pktizr sends packet at a rate of 100 packets per second, in
 order to avoid flooding the local network or the target hosts. You can specify a
