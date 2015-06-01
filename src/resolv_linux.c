@@ -30,6 +30,7 @@
 
 #ifdef __linux__
 
+#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -52,7 +53,7 @@ int resolve_ifname_to_mac(char *ifname, uint8_t *mac) {
 	if (fd < 0)
 		sysf_printf("socket(AF_INET");
 
-	strncpy(ifr.ifr_name, ifname, IFNAMSIZ - 1);
+	snprintf(ifr.ifr_name, IFNAMSIZ, "%s", ifname);
 
 	rc = ioctl(fd, SIOCGIFHWADDR, &ifr);
 	if (rc < 0)
@@ -72,7 +73,7 @@ int resolve_ifname_to_ip(char *ifname, uint32_t *ip) {
 	if (fd < 0)
 		sysf_printf("socket(AF_INET");
 
-	strncpy(ifr.ifr_name, ifname, IFNAMSIZ - 1);
+	snprintf(ifr.ifr_name, IFNAMSIZ, "%s", ifname);
 
 	rc = ioctl(fd, SIOCGIFADDR, &ifr);
 	if (rc < 0)
