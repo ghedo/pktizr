@@ -28,6 +28,9 @@ def options(opt):
 			help    = 'directory for installing {0} [{1}]' \
 			            .format(desc, default))
 
+	opt.add_option('--optimize', action='store_true', default=None,
+	               help='enable compiler optimizations')
+
 	opt.add_option('--sanitize', action='store', default=None,
 	               help='enable specified sanotizer (address, thread, ...)')
 
@@ -119,6 +122,9 @@ def configure(cfg):
 
 	# afl
 	cfg.find_program('afl-fuzz', mandatory=False)
+
+	if cfg.options.optimize:
+		cfg.env.CFLAGS += [ '-Ofast', '-fno-strict-aliasing' ]
 
 	if cfg.options.sanitize:
 		cflags = [ '-fsanitize=' + cfg.options.sanitize ]
