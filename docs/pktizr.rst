@@ -48,6 +48,10 @@ Send the given amount of duplicate packets [default: 1].
 
 Shuffle the target IP addresses and ports, instead of processing them in order.
 
+.. option:: -o, --offline
+
+Don't transmit packets (mostly for benchmarking purposes).
+
 .. option:: -l, --local-addr=<addr>
 
 Specify the source IP address. This value can be accessed by scripts using the

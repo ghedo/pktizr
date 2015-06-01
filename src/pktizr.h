@@ -47,6 +47,7 @@ struct pktizr_args {
 	uint64_t count;
 
 	bool shuffle;
+	bool offline;
 
 	pthread_t       recv_thread;
 	pthread_mutex_t recv_mutex;

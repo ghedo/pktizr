@@ -56,7 +56,7 @@
 #include "pktizr.h"
 #include "script.h"
 
-static const char *short_opts = "S:p:r:s:w:c:l:g:n:Rqh?";
+static const char *short_opts = "S:p:r:s:w:c:l:g:n:Roqh?";
 
 static bool stop = false;
 
@@ -73,7 +73,8 @@ static struct option long_opts[] = {
 
 	{ "netdev",      required_argument, NULL, 'n' },
 
-	{ "shuffle",     required_argument, NULL, 'R' },
+	{ "shuffle",     no_argument,       NULL, 'R' },
+	{ "offline",     no_argument,       NULL, 'o' },
 
 	{ "quiet",       no_argument,       NULL, 'q' },
 
@@ -170,6 +171,10 @@ int main(int argc, char *argv[]) {
 
 		case 'R':
 			args->shuffle = true;
+			break;
+
+		case 'o':
+			args->offline = true;
 			break;
 
 		case 'l':
@@ -307,7 +312,9 @@ int pkt_send(struct pktizr_args *args, struct pkt *pkt) {
 	if (pkt_len < 0)
 		return -1;
 
-	netdev_inject(args->netdev, buf, pkt_len);
+	if (caa_likely(!args->offline))
+		netdev_inject(args->netdev, buf, pkt_len);
+
 	args->pkt_sent++;
 
 	return 0;
@@ -520,6 +527,7 @@ static inline void help(void) {
 	CMD_HELP("--netdev", "-n", "Use the specified netdev driver");
 
 	CMD_HELP("--shuffle", "-R", "Shuffle the target address/port order");
+	CMD_HELP("--offline", "-o", "Don't transmit packets");
 
 	CMD_HELP("--quiet", "-q", "Don't show the status line");
 
