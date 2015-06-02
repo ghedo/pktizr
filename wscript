@@ -72,7 +72,7 @@ def configure(cfg):
 			cfg.env[varname] = \
 			  Utils.subst_vars(cfg.env[varname], cfg.env)
 
-	cfg.env.CFLAGS   += [ '-Wall', '-pedantic', '-g', '-std=gnu99' ]
+	cfg.env.CFLAGS   += [ '-Wall', '-pedantic', '-g', '-std=gnu99', '-fno-strict-aliasing' ]
 	cfg.env.CPPFLAGS += [ '-D_GNU_SOURCE' ]
 
 	cfg.env.deps = []
@@ -124,7 +124,7 @@ def configure(cfg):
 	cfg.find_program('afl-fuzz', mandatory=False)
 
 	if cfg.options.optimize:
-		cfg.env.CFLAGS += [ '-Ofast', '-fno-strict-aliasing' ]
+		cfg.env.CFLAGS += [ '-Ofast' ]
 
 	if cfg.options.sanitize:
 		cflags = [ '-fsanitize=' + cfg.options.sanitize ]
