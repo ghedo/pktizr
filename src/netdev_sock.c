@@ -163,7 +163,7 @@ static void netdev_inject_sock(void *p, uint8_t *buf, size_t len) {
 	hdr->tp_status = TP_STATUS_SEND_REQUEST;
 
 	rc = sendto(priv->fd, NULL, 0, MSG_DONTWAIT, NULL, 0);
-	if (rc < 0)
+	if ((rc < 0) && (errno != EAGAIN))
 		sysf_printf("sendto()");
 }
 
