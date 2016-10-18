@@ -38,33 +38,33 @@
 #include "pkt.h"
 
 void pkt_pack_udp(struct pkt *p, uint8_t *buf, size_t len) {
-	uint32_t csum = 0;
-	struct udp_hdr *out = (struct udp_hdr *) buf;
+    uint32_t csum = 0;
+    struct udp_hdr *out = (struct udp_hdr *) buf;
 
-	out->sport  = htons(p->p.udp.sport);
-	out->dport  = htons(p->p.udp.dport);
-	out->len    = htons(p->p.udp.len);
-	out->chksum = 0;
+    out->sport  = htons(p->p.udp.sport);
+    out->dport  = htons(p->p.udp.dport);
+    out->len    = htons(p->p.udp.len);
+    out->chksum = 0;
 
-	if (p->next && (p->next->type == TYPE_IP4))
-		csum = pkt_pseudo_chksum(&p->next->p.ip4);
+    if (p->next && (p->next->type == TYPE_IP4))
+        csum = pkt_pseudo_chksum(&p->next->p.ip4);
 
-	out->chksum = pkt_chksum(buf, len, csum);
+    out->chksum = pkt_chksum(buf, len, csum);
 }
 
 int pkt_unpack_udp(struct pkt *p, uint8_t *buf, size_t len) {
-	if (len < 8)
-		return -1;
+    if (len < 8)
+        return -1;
 
-	memcpy(&p->p.udp, buf, sizeof(p->p.udp));
+    memcpy(&p->p.udp, buf, sizeof(p->p.udp));
 
-	p->p.udp.sport  = htons(p->p.udp.sport);
-	p->p.udp.dport  = htons(p->p.udp.dport);
-	p->p.udp.len    = htons(p->p.udp.len);
-	p->p.udp.chksum = htons(p->p.udp.chksum);
+    p->p.udp.sport  = htons(p->p.udp.sport);
+    p->p.udp.dport  = htons(p->p.udp.dport);
+    p->p.udp.len    = htons(p->p.udp.len);
+    p->p.udp.chksum = htons(p->p.udp.chksum);
 
-	p->type   = TYPE_UDP;
-	p->length = 8;
+    p->type   = TYPE_UDP;
+    p->length = 8;
 
-	return TYPE_RAW;
+    return TYPE_RAW;
 }

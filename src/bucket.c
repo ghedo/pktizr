@@ -38,34 +38,34 @@
 #include "util.h"
 
 void bucket_init(struct bucket *t, uint64_t rate) {
-	t->rate      = rate;
-	t->tokens    = rate;
-	t->timestamp = time_now();
+    t->rate      = rate;
+    t->tokens    = rate;
+    t->timestamp = time_now();
 }
 
 void bucket_consume(struct bucket *t) {
-	uint64_t now;
-	double tokens;
+    uint64_t now;
+    double tokens;
 
-	if (!t->rate)
-		return;
+    if (!t->rate)
+        return;
 
-	do {
-		now    = time_now();
-		tokens = ((now - t->timestamp) / 1e6) * t->rate;
+    do {
+        now    = time_now();
+        tokens = ((now - t->timestamp) / 1e6) * t->rate;
 
-		if (tokens >= 1.0)
-			break;
+        if (tokens >= 1.0)
+            break;
 
-		caa_cpu_relax();
-	} while (1);
+        caa_cpu_relax();
+    } while (1);
 
-	t->tokens += tokens;
+    t->tokens += tokens;
 
-	if (caa_unlikely(t->tokens > t->rate))
-		t->tokens = t->rate;
+    if (caa_unlikely(t->tokens > t->rate))
+        t->tokens = t->rate;
 
-	t->timestamp = now;
+    t->timestamp = now;
 
-	return;
+    return;
 }

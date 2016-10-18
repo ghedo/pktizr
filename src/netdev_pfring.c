@@ -42,84 +42,84 @@
 #include "util.h"
 
 struct priv {
-	pfring  *p;
-	uint8_t *buf;
-	size_t   buf_len;
+    pfring  *p;
+    uint8_t *buf;
+    size_t   buf_len;
 };
 
 static void netdev_open_pfring(void *p, const char *dev_name) {
-	struct priv *priv = p;
+    struct priv *priv = p;
 
-	priv->p = pfring_open(dev_name, 1500, 0);
-	if (priv->p == NULL)
-		fail_printf("Error opening pfring");
+    priv->p = pfring_open(dev_name, 1500, 0);
+    if (priv->p == NULL)
+        fail_printf("Error opening pfring");
 
-	pfring_set_application_name(priv->p, "pktizr");
-	pfring_enable_ring(priv->p);
+    pfring_set_application_name(priv->p, "pktizr");
+    pfring_enable_ring(priv->p);
 
-	priv->buf_len = 65535;
-	priv->buf     = malloc(priv->buf_len);
+    priv->buf_len = 65535;
+    priv->buf     = malloc(priv->buf_len);
 }
 
 static uint8_t *netdev_get_buf_pfring(void *p, size_t *len) {
-	struct priv *priv = p;
-	*len = priv->buf_len;
-	return priv->buf;
+    struct priv *priv = p;
+    *len = priv->buf_len;
+    return priv->buf;
 }
 
 static void netdev_inject_pfring(void *p, uint8_t *buf, size_t len) {
-	struct priv *priv = p;
-	while (pfring_send(priv->p, (char *) buf, len, 1) < 0)
-		caa_cpu_relax();
+    struct priv *priv = p;
+    while (pfring_send(priv->p, (char *) buf, len, 1) < 0)
+        caa_cpu_relax();
 }
 
 static const uint8_t *netdev_capture_pfring(void *p, int *len) {
-	const uint8_t *buf;
-	struct pfring_pkthdr pkt_hdr;
+    const uint8_t *buf;
+    struct pfring_pkthdr pkt_hdr;
 
-	struct priv *priv = p;
+    struct priv *priv = p;
 
-	int rc = pfring_recv(priv->p, (unsigned char **) &buf, 0, &pkt_hdr, 0);
-	switch (rc) {
-	case -1:
-		fail_printf("Error capturing packet");
+    int rc = pfring_recv(priv->p, (unsigned char **) &buf, 0, &pkt_hdr, 0);
+    switch (rc) {
+    case -1:
+        fail_printf("Error capturing packet");
 
-	case 0:
-		return NULL;
+    case 0:
+        return NULL;
 
-	case 1:
-		*len = pkt_hdr.len;
-		return buf;
-	}
+    case 1:
+        *len = pkt_hdr.len;
+        return buf;
+    }
 
-	assert(1);
-	return NULL;
+    assert(1);
+    return NULL;
 }
 
 static void netdev_release_pfring(void *p) {
 }
 
 static void netdev_close_pfring(void *p) {
-	struct priv *priv = p;
+    struct priv *priv = p;
 
-	pfring_close(priv->p);
+    pfring_close(priv->p);
 
-	freep(&priv->buf);
-	priv->buf_len = 0;
+    freep(&priv->buf);
+    priv->buf_len = 0;
 }
 
 const struct netdev_driver netdev_pfring = {
-	.name    = "pfring",
+    .name    = "pfring",
 
-	.priv_size = sizeof(struct priv),
+    .priv_size = sizeof(struct priv),
 
-	.open    = netdev_open_pfring,
+    .open    = netdev_open_pfring,
 
-	.get_buf = netdev_get_buf_pfring,
-	.inject  = netdev_inject_pfring,
+    .get_buf = netdev_get_buf_pfring,
+    .inject  = netdev_inject_pfring,
 
-	.capture = netdev_capture_pfring,
-	.release = netdev_release_pfring,
+    .capture = netdev_capture_pfring,
+    .release = netdev_release_pfring,
 
-	.close   = netdev_close_pfring,
+    .close   = netdev_close_pfring,
 };

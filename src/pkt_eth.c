@@ -38,44 +38,44 @@
 #include "pkt.h"
 
 void pkt_build_eth(struct pkt *p, uint8_t *src, uint8_t *dst, uint16_t type) {
-	if (p == NULL)
-		return;
+    if (p == NULL)
+        return;
 
-	memcpy(p->p.eth.src, src, 6);
-	memcpy(p->p.eth.dst, dst, 6);
+    memcpy(p->p.eth.src, src, 6);
+    memcpy(p->p.eth.dst, dst, 6);
 
-	p->p.eth.type = type;
+    p->p.eth.type = type;
 
-	p->type   = TYPE_ETH;
-	p->length = 14;
+    p->type   = TYPE_ETH;
+    p->length = 14;
 }
 
 void pkt_pack_eth(struct pkt *p, uint8_t *buf, size_t len) {
-	struct eth_hdr *out = (struct eth_hdr *) buf;
+    struct eth_hdr *out = (struct eth_hdr *) buf;
 
-	memcpy(out->src, p->p.eth.src, 6);
-	memcpy(out->dst, p->p.eth.dst, 6);
+    memcpy(out->src, p->p.eth.src, 6);
+    memcpy(out->dst, p->p.eth.dst, 6);
 
-	out->type = htons(p->p.eth.type);
+    out->type = htons(p->p.eth.type);
 }
 
 int pkt_unpack_eth(struct pkt *p, uint8_t *buf, size_t len) {
-	if (len < 14)
-		return -1;
+    if (len < 14)
+        return -1;
 
-	memcpy(&p->p.eth, buf, sizeof(p->p.eth));
-	p->p.eth.type = ntohs(p->p.eth.type);
+    memcpy(&p->p.eth, buf, sizeof(p->p.eth));
+    p->p.eth.type = ntohs(p->p.eth.type);
 
-	p->type   = TYPE_ETH;
-	p->length = 14;
+    p->type   = TYPE_ETH;
+    p->length = 14;
 
-	switch (p->p.eth.type) {
-	case ETHERTYPE_ARP:
-		return TYPE_ARP;
+    switch (p->p.eth.type) {
+    case ETHERTYPE_ARP:
+        return TYPE_ARP;
 
-	case ETHERTYPE_IP:
-		return TYPE_IP4;
-	}
+    case ETHERTYPE_IP:
+        return TYPE_IP4;
+    }
 
-	return TYPE_NONE;
+    return TYPE_NONE;
 }

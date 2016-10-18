@@ -29,23 +29,23 @@
  */
 
 struct netdev {
-	const struct netdev_driver *driver;
-	void *priv;
+    const struct netdev_driver *driver;
+    void *priv;
 };
 
 struct netdev_driver {
-	const char *name;
-	size_t priv_size;
+    const char *name;
+    size_t priv_size;
 
-	void (*open)(void *priv, const char *dev_name);
+    void (*open)(void *priv, const char *dev_name);
 
-	uint8_t *(*get_buf)(void *, size_t *);
-	void (*inject)(void *, uint8_t *, size_t);
+    uint8_t *(*get_buf)(void *, size_t *);
+    void (*inject)(void *, uint8_t *, size_t);
 
-	const uint8_t *(*capture)(void *, int *);
-	void (*release)(void *);
+    const uint8_t *(*capture)(void *, int *);
+    void (*release)(void *);
 
-	void (*close)(void *);
+    void (*close)(void *);
 };
 
 struct netdev *netdev_open(const char *name, const char *dev_name);

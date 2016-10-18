@@ -39,17 +39,17 @@
 #include "pkt.h"
 
 void pkt_pack_raw(struct pkt *p, uint8_t *buf, size_t len) {
-	memcpy(buf, p->p.raw.payload, p->p.raw.len);
+    memcpy(buf, p->p.raw.payload, p->p.raw.len);
 }
 
 int pkt_unpack_raw(struct pkt *p, uint8_t *buf, size_t len) {
-	p->p.raw.payload = malloc(len);
-	p->p.raw.len     = len;
+    p->p.raw.payload = malloc(len);
+    p->p.raw.len     = len;
 
-	memcpy(p->p.raw.payload, buf, len);
+    memcpy(p->p.raw.payload, buf, len);
 
-	p->type   = TYPE_RAW;
-	p->length = p->p.raw.len;
+    p->type   = TYPE_RAW;
+    p->length = p->p.raw.len;
 
-	return TYPE_NONE;
+    return TYPE_NONE;
 }

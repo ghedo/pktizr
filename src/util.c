@@ -35,45 +35,45 @@
 #include "util.h"
 
 size_t split_str(char *orig, char ***dest, char *needle) {
-	size_t size  = 0;
-	char  *token = NULL;
+    size_t size  = 0;
+    char  *token = NULL;
 
-	if (orig == NULL || dest == NULL)
-		return 0;
+    if (orig == NULL || dest == NULL)
+        return 0;
 
-	token = strtok(orig, needle);
+    token = strtok(orig, needle);
 
-	do {
-		char **tmp = realloc(*dest, sizeof(char *) * (size + 1));
+    do {
+        char **tmp = realloc(*dest, sizeof(char *) * (size + 1));
 
-		if (tmp == NULL) {
-			if (*dest != NULL)
-				free(*dest);
+        if (tmp == NULL) {
+            if (*dest != NULL)
+                free(*dest);
 
-			return 0;
-		}
+            return 0;
+        }
 
-		*dest = tmp;
-		(*dest)[size++] = token;
-	} while ((token = strtok(NULL, needle)) != NULL);
+        *dest = tmp;
+        (*dest)[size++] = token;
+    } while ((token = strtok(NULL, needle)) != NULL);
 
-	return size;
+    return size;
 }
 
 size_t validate_optlist(char *name, char *opts) {
-	size_t i, c;
-	_free_ char **vars = NULL;
+    size_t i, c;
+    _free_ char **vars = NULL;
 
-	_free_ char *tmp = strdup(opts);
-	if (tmp == NULL) fail_printf("OOM");
+    _free_ char *tmp = strdup(opts);
+    if (tmp == NULL) fail_printf("OOM");
 
-	c = split_str(tmp, &vars, ",");
-	if (c == 0) fail_printf("Invalid value '%s' for %s", opts, name);
+    c = split_str(tmp, &vars, ",");
+    if (c == 0) fail_printf("Invalid value '%s' for %s", opts, name);
 
-	for (i = 0; i < c; i++) {
-		if (vars[i] == '\0')
-			fail_printf("Invalid value '%s' for %s", opts, name);
-	}
+    for (i = 0; i < c; i++) {
+        if (vars[i] == '\0')
+            fail_printf("Invalid value '%s' for %s", opts, name);
+    }
 
-	return c;
+    return c;
 }

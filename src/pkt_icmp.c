@@ -38,37 +38,37 @@
 #include "pkt.h"
 
 void pkt_pack_icmp(struct pkt *p, uint8_t *buf, size_t len) {
-	struct icmp_hdr *out = (struct icmp_hdr *) buf;
+    struct icmp_hdr *out = (struct icmp_hdr *) buf;
 
-	out->type   = p->p.icmp.type;
-	out->code   = p->p.icmp.code;
-	out->chksum = 0;
-	out->id     = htons(p->p.icmp.id);
-	out->seq    = htons(p->p.icmp.seq);
+    out->type   = p->p.icmp.type;
+    out->code   = p->p.icmp.code;
+    out->chksum = 0;
+    out->id     = htons(p->p.icmp.id);
+    out->seq    = htons(p->p.icmp.seq);
 
-	out->chksum = pkt_chksum(buf, len, 0);
+    out->chksum = pkt_chksum(buf, len, 0);
 }
 
 int pkt_unpack_icmp(struct pkt *p, uint8_t *buf, size_t len) {
-	if (len < 8)
-		return -1;
+    if (len < 8)
+        return -1;
 
-	memcpy(&p->p.icmp, buf, sizeof(p->p.icmp));
+    memcpy(&p->p.icmp, buf, sizeof(p->p.icmp));
 
-	p->p.icmp.type   = p->p.icmp.type;
-	p->p.icmp.code   = p->p.icmp.code;
-	p->p.icmp.chksum = htons(p->p.icmp.chksum);
-	p->p.icmp.id     = htons(p->p.icmp.id);
-	p->p.icmp.seq    = htons(p->p.icmp.seq);
+    p->p.icmp.type   = p->p.icmp.type;
+    p->p.icmp.code   = p->p.icmp.code;
+    p->p.icmp.chksum = htons(p->p.icmp.chksum);
+    p->p.icmp.id     = htons(p->p.icmp.id);
+    p->p.icmp.seq    = htons(p->p.icmp.seq);
 
-	p->type   = TYPE_ICMP;
-	p->length = 8;
+    p->type   = TYPE_ICMP;
+    p->length = 8;
 
-	if ((p->p.icmp.type == 3) ||
-	    (p->p.icmp.type == 4) ||
-	    (p->p.icmp.type == 5) ||
-	    (p->p.icmp.type == 11))
-		return TYPE_IP4;
+    if ((p->p.icmp.type == 3) ||
+        (p->p.icmp.type == 4) ||
+        (p->p.icmp.type == 5) ||
+        (p->p.icmp.type == 11))
+        return TYPE_IP4;
 
-	return TYPE_RAW;
+    return TYPE_RAW;
 }

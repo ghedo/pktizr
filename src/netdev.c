@@ -42,57 +42,57 @@ extern const struct netdev_driver netdev_sock;
 
 static const struct netdev_driver * const netdev_drivers[] = {
 #ifdef HAVE_PFRING_H
-	&netdev_pfring,
+    &netdev_pfring,
 #endif
 
 #ifdef HAVE_PCAP_H
-	&netdev_pcap,
+    &netdev_pcap,
 #endif
 
 #ifdef HAVE_LINUX_IF_PACKET_H
-	&netdev_sock,
+    &netdev_sock,
 #endif
-	NULL,
+    NULL,
 };
 
 struct netdev *netdev_open(const char *name, const char *dev_name) {
-	struct netdev *dev = malloc(sizeof(*dev));
+    struct netdev *dev = malloc(sizeof(*dev));
 
-	for (size_t i = 0; netdev_drivers[i] != NULL; i++) {
-		const struct netdev_driver *cur = netdev_drivers[i];
+    for (size_t i = 0; netdev_drivers[i] != NULL; i++) {
+        const struct netdev_driver *cur = netdev_drivers[i];
 
-		if (!name || !strcmp(cur->name, name)) {
-			dev->driver = cur;
-			dev->priv   = calloc(1, cur->priv_size);
+        if (!name || !strcmp(cur->name, name)) {
+            dev->driver = cur;
+            dev->priv   = calloc(1, cur->priv_size);
 
-			dev->driver->open(dev->priv, dev_name);
-			return dev;
-		}
-	}
+            dev->driver->open(dev->priv, dev_name);
+            return dev;
+        }
+    }
 
-	fail_printf("No netdev implementation supported");
-	return NULL;
+    fail_printf("No netdev implementation supported");
+    return NULL;
 }
 
 uint8_t *netdev_get_buf(struct netdev *dev, size_t *len) {
-	return dev->driver->get_buf(dev->priv, len);
+    return dev->driver->get_buf(dev->priv, len);
 }
 
 void netdev_inject(struct netdev *dev, uint8_t *buf, size_t len) {
-	dev->driver->inject(dev->priv, buf, len);
+    dev->driver->inject(dev->priv, buf, len);
 }
 
 const uint8_t *netdev_capture(struct netdev *dev, int *len) {
-	return dev->driver->capture(dev->priv, len);
+    return dev->driver->capture(dev->priv, len);
 }
 
 void netdev_release(struct netdev *dev) {
-	dev->driver->release(dev->priv);
+    dev->driver->release(dev->priv);
 }
 
 void netdev_close(struct netdev *dev) {
-	dev->driver->close(dev->priv);
+    dev->driver->close(dev->priv);
 
-	freep(&dev->priv);
-	freep(&dev);
+    freep(&dev->priv);
+    freep(&dev);
 }

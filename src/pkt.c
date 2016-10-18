@@ -42,241 +42,241 @@
 #include "util.h"
 
 struct pkt *pkt_new(enum pkt_type type) {
-	struct pkt *p = calloc(1, sizeof(*p));
+    struct pkt *p = calloc(1, sizeof(*p));
 
-	p->type   = type;
-	p->refcnt = 1;
+    p->type   = type;
+    p->refcnt = 1;
 
-	switch (type) {
-	case TYPE_ETH:
-		pkt_build_eth(p, (uint8_t *) "\x0\x0\x0\x0\x0\x0",
-		                 (uint8_t *) "\x0\x0\x0\x0\x0\x0", 0);
-		break;
+    switch (type) {
+    case TYPE_ETH:
+        pkt_build_eth(p, (uint8_t *) "\x0\x0\x0\x0\x0\x0",
+                         (uint8_t *) "\x0\x0\x0\x0\x0\x0", 0);
+        break;
 
-	case TYPE_ARP:
-		p->length = 8;
-		break;
+    case TYPE_ARP:
+        p->length = 8;
+        break;
 
-	case TYPE_IP4:
-		p->length = 20;
-		break;
+    case TYPE_IP4:
+        p->length = 20;
+        break;
 
-	case TYPE_ICMP:
-		p->length = 8;
-		break;
+    case TYPE_ICMP:
+        p->length = 8;
+        break;
 
-	case TYPE_UDP:
-		p->length = 8;
-		break;
+    case TYPE_UDP:
+        p->length = 8;
+        break;
 
-	case TYPE_TCP:
-		p->length = 20;
-		break;
+    case TYPE_TCP:
+        p->length = 20;
+        break;
 
-	case TYPE_RAW:
-		p->length = 0;
-		break;
+    case TYPE_RAW:
+        p->length = 0;
+        break;
 
-	case TYPE_NONE:
-		p->length = 0;
-		break;
+    case TYPE_NONE:
+        p->length = 0;
+        break;
 
-	default:
-		fail_printf("Invalid packet type: %d", type);
-	}
+    default:
+        fail_printf("Invalid packet type: %d", type);
+    }
 
-	queue_node_init(&p->queue);
+    queue_node_init(&p->queue);
 
-	return p;
+    return p;
 }
 
 int pkt_pack(uint8_t *buf, size_t len, struct pkt *p) {
-	struct pkt *cur;
-	size_t plen = 0, i = 0;
-	enum pkt_type prev_type = TYPE_NONE;
+    struct pkt *cur;
+    size_t plen = 0, i = 0;
+    enum pkt_type prev_type = TYPE_NONE;
 
-	DL_FOREACH(p, cur) {
-		plen += cur->length;
+    DL_FOREACH(p, cur) {
+        plen += cur->length;
 
-		switch (cur->type) {
-		case TYPE_ETH:
-			switch (prev_type) {
-			case TYPE_ARP:
-				cur->p.eth.type= ETHERTYPE_ARP;
-				break;
+        switch (cur->type) {
+        case TYPE_ETH:
+            switch (prev_type) {
+            case TYPE_ARP:
+                cur->p.eth.type= ETHERTYPE_ARP;
+                break;
 
-			case TYPE_IP4:
-				cur->p.eth.type= ETHERTYPE_IP;
-				break;
+            case TYPE_IP4:
+                cur->p.eth.type= ETHERTYPE_IP;
+                break;
 
-			default:
-				break;
-			}
+            default:
+                break;
+            }
 
-			break;
+            break;
 
-		case TYPE_IP4:
-			switch (prev_type) {
-			case TYPE_ICMP:
-				cur->p.ip4.proto = PROTO_ICMP;
-				break;
+        case TYPE_IP4:
+            switch (prev_type) {
+            case TYPE_ICMP:
+                cur->p.ip4.proto = PROTO_ICMP;
+                break;
 
-			case TYPE_UDP:
-				cur->p.ip4.proto = PROTO_UDP;
-				break;
+            case TYPE_UDP:
+                cur->p.ip4.proto = PROTO_UDP;
+                break;
 
-			case TYPE_TCP:
-				cur->p.ip4.proto = PROTO_TCP;
-				break;
+            case TYPE_TCP:
+                cur->p.ip4.proto = PROTO_TCP;
+                break;
 
-			default:
-				break;
-			}
+            default:
+                break;
+            }
 
-			cur->p.ip4.len = plen;
-			break;
+            cur->p.ip4.len = plen;
+            break;
 
-		case TYPE_UDP:
-			cur->p.udp.len = plen;
-			break;
+        case TYPE_UDP:
+            cur->p.udp.len = plen;
+            break;
 
-		case TYPE_TCP:
-			break;
-		}
+        case TYPE_TCP:
+            break;
+        }
 
-		prev_type = cur->type;
-	}
+        prev_type = cur->type;
+    }
 
-	if (len < plen)
-		return -1;
+    if (len < plen)
+        return -1;
 
-	i = plen;
+    i = plen;
 
-	DL_FOREACH(p, cur) {
-		i -= cur->length;
+    DL_FOREACH(p, cur) {
+        i -= cur->length;
 
-		switch (cur->type) {
-		case TYPE_ETH:
-			pkt_pack_eth(cur, buf + i, plen - i);
-			break;
+        switch (cur->type) {
+        case TYPE_ETH:
+            pkt_pack_eth(cur, buf + i, plen - i);
+            break;
 
-		case TYPE_ARP:
-			pkt_pack_arp(cur, buf + i, plen - i);
-			break;
+        case TYPE_ARP:
+            pkt_pack_arp(cur, buf + i, plen - i);
+            break;
 
-		case TYPE_IP4:
-			pkt_pack_ip4(cur, buf + i, plen - i);
-			break;
+        case TYPE_IP4:
+            pkt_pack_ip4(cur, buf + i, plen - i);
+            break;
 
-		case TYPE_ICMP:
-			pkt_pack_icmp(cur, buf + i, plen - i);
-			break;
+        case TYPE_ICMP:
+            pkt_pack_icmp(cur, buf + i, plen - i);
+            break;
 
-		case TYPE_UDP:
-			pkt_pack_udp(cur, buf + i, plen - i);
-			break;
+        case TYPE_UDP:
+            pkt_pack_udp(cur, buf + i, plen - i);
+            break;
 
-		case TYPE_TCP:
-			pkt_pack_tcp(cur, buf + i, plen - i);
-			break;
+        case TYPE_TCP:
+            pkt_pack_tcp(cur, buf + i, plen - i);
+            break;
 
-		case TYPE_RAW:
-			pkt_pack_raw(cur, buf + i, plen - i);
-			break;
-		}
-	}
+        case TYPE_RAW:
+            pkt_pack_raw(cur, buf + i, plen - i);
+            break;
+        }
+    }
 
-	return plen;
+    return plen;
 }
 
 int pkt_unpack(uint8_t *buf, size_t len, struct pkt **p) {
-	int n = 0;
-	size_t i = 0;
+    int n = 0;
+    size_t i = 0;
 
-	if (len < 14)
-		return 0;
+    if (len < 14)
+        return 0;
 
-	struct pkt *pkt = NULL;
-	int next_type = TYPE_ETH;
+    struct pkt *pkt = NULL;
+    int next_type = TYPE_ETH;
 
-	while ((i < len) && (next_type != TYPE_NONE)) {
-		struct pkt *new = pkt_new(next_type);
-		DL_APPEND(pkt, new);
+    while ((i < len) && (next_type != TYPE_NONE)) {
+        struct pkt *new = pkt_new(next_type);
+        DL_APPEND(pkt, new);
 
-		switch (next_type) {
-		case TYPE_ARP:
-			next_type = pkt_unpack_arp(new, (buf + i), (len - i));
-			break;
+        switch (next_type) {
+        case TYPE_ARP:
+            next_type = pkt_unpack_arp(new, (buf + i), (len - i));
+            break;
 
-		case TYPE_ETH:
-			next_type = pkt_unpack_eth(new, (buf + i), (len - i));
-			break;
+        case TYPE_ETH:
+            next_type = pkt_unpack_eth(new, (buf + i), (len - i));
+            break;
 
-		case TYPE_IP4:
-			next_type = pkt_unpack_ip4(new, (buf + i), (len - i));
-			break;
+        case TYPE_IP4:
+            next_type = pkt_unpack_ip4(new, (buf + i), (len - i));
+            break;
 
-		case TYPE_ICMP:
-			next_type = pkt_unpack_icmp(new, (buf + i), (len - i));
-			break;
+        case TYPE_ICMP:
+            next_type = pkt_unpack_icmp(new, (buf + i), (len - i));
+            break;
 
-		case TYPE_UDP:
-			next_type = pkt_unpack_udp(new, (buf + i), (len - i));
-			break;
+        case TYPE_UDP:
+            next_type = pkt_unpack_udp(new, (buf + i), (len - i));
+            break;
 
-		case TYPE_TCP:
-			next_type = pkt_unpack_tcp(new, (buf + i), (len - i));
-			break;
+        case TYPE_TCP:
+            next_type = pkt_unpack_tcp(new, (buf + i), (len - i));
+            break;
 
-		case TYPE_RAW:
-			next_type = pkt_unpack_raw(new, (buf + i), (len - i));
-			break;
+        case TYPE_RAW:
+            next_type = pkt_unpack_raw(new, (buf + i), (len - i));
+            break;
 
-		default:
-			fail_printf("Unknown packet type: %u", next_type);
-		}
+        default:
+            fail_printf("Unknown packet type: %u", next_type);
+        }
 
-		if (next_type < 0) {
-			pkt_free_all(pkt);
-			return 0;
-		}
+        if (next_type < 0) {
+            pkt_free_all(pkt);
+            return 0;
+        }
 
-		i += new->length;
-		n++;
-	}
+        i += new->length;
+        n++;
+    }
 
-	*p = pkt;
+    *p = pkt;
 
-	return n;
+    return n;
 }
 
 void pkt_free(struct pkt *pkt) {
-	pkt->refcnt--;
+    pkt->refcnt--;
 
-	if (pkt->refcnt > 0)
-		return;
+    if (pkt->refcnt > 0)
+        return;
 
-	switch (pkt->type) {
-	case TYPE_ARP:
-		freep(&pkt->p.arp.hwsrc);
-		freep(&pkt->p.arp.hwdst);
-		freep(&pkt->p.arp.psrc);
-		freep(&pkt->p.arp.pdst);
-		break;
+    switch (pkt->type) {
+    case TYPE_ARP:
+        freep(&pkt->p.arp.hwsrc);
+        freep(&pkt->p.arp.hwdst);
+        freep(&pkt->p.arp.psrc);
+        freep(&pkt->p.arp.pdst);
+        break;
 
-	case TYPE_RAW:
-		freep(&pkt->p.raw.payload);
-		break;
-	}
+    case TYPE_RAW:
+        freep(&pkt->p.raw.payload);
+        break;
+    }
 
-	free(pkt);
+    free(pkt);
 }
 
 void pkt_free_all(struct pkt *pkt) {
-	struct pkt *cur, *tmp;
+    struct pkt *cur, *tmp;
 
-	DL_FOREACH_SAFE(pkt, cur, tmp) {
-		DL_DELETE(pkt, cur);
-		pkt_free(cur);
-	}
+    DL_FOREACH_SAFE(pkt, cur, tmp) {
+        DL_DELETE(pkt, cur);
+        pkt_free(cur);
+    }
 }

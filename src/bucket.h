@@ -29,9 +29,9 @@
  */
 
 struct bucket {
-	double   tokens;
-	uint64_t rate;
-	uint64_t timestamp;
+    double   tokens;
+    uint64_t rate;
+    uint64_t timestamp;
 };
 
 void bucket_init(struct bucket *t, uint64_t rate);

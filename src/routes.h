@@ -29,10 +29,10 @@
  */
 
 struct route {
-	uint32_t pref_addr;
-	uint32_t gate_addr;
-	uint32_t if_index;
-	char if_name[IF_NAMESIZE];
+    uint32_t pref_addr;
+    uint32_t gate_addr;
+    uint32_t if_index;
+    char if_name[IF_NAMESIZE];
 };
 
 int routes_get_default(struct route *r);

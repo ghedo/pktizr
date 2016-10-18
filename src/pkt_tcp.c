@@ -38,58 +38,58 @@
 #include "pkt.h"
 
 void pkt_pack_tcp(struct pkt *p, uint8_t *buf, size_t len) {
-	uint32_t csum = 0;
-	struct tcp_hdr *out = (struct tcp_hdr *) buf;
+    uint32_t csum = 0;
+    struct tcp_hdr *out = (struct tcp_hdr *) buf;
 
-	out->sport   = htons(p->p.tcp.sport);
-	out->dport   = htons(p->p.tcp.dport);
-	out->seq     = htonl(p->p.tcp.seq);
-	out->ack_seq = htonl(p->p.tcp.ack_seq);
-	out->doff    = p->p.tcp.doff;
-	out->fin     = p->p.tcp.fin;
-	out->syn     = p->p.tcp.syn;
-	out->rst     = p->p.tcp.rst;
-	out->psh     = p->p.tcp.psh;
-	out->ack     = p->p.tcp.ack;
-	out->urg     = p->p.tcp.urg;
-	out->ece     = p->p.tcp.ece;
-	out->cwr     = p->p.tcp.cwr;
-	out->ns      = p->p.tcp.ns;
-	out->window  = htons(p->p.tcp.window);
-	out->chksum  = 0;
-	out->urg_ptr = htons(p->p.tcp.urg_ptr);
+    out->sport   = htons(p->p.tcp.sport);
+    out->dport   = htons(p->p.tcp.dport);
+    out->seq     = htonl(p->p.tcp.seq);
+    out->ack_seq = htonl(p->p.tcp.ack_seq);
+    out->doff    = p->p.tcp.doff;
+    out->fin     = p->p.tcp.fin;
+    out->syn     = p->p.tcp.syn;
+    out->rst     = p->p.tcp.rst;
+    out->psh     = p->p.tcp.psh;
+    out->ack     = p->p.tcp.ack;
+    out->urg     = p->p.tcp.urg;
+    out->ece     = p->p.tcp.ece;
+    out->cwr     = p->p.tcp.cwr;
+    out->ns      = p->p.tcp.ns;
+    out->window  = htons(p->p.tcp.window);
+    out->chksum  = 0;
+    out->urg_ptr = htons(p->p.tcp.urg_ptr);
 
-	if (p->next && (p->next->type == TYPE_IP4))
-		csum = pkt_pseudo_chksum(&p->next->p.ip4);
+    if (p->next && (p->next->type == TYPE_IP4))
+        csum = pkt_pseudo_chksum(&p->next->p.ip4);
 
-	out->chksum  = pkt_chksum(buf, len, csum);
+    out->chksum  = pkt_chksum(buf, len, csum);
 }
 
 int pkt_unpack_tcp(struct pkt *p, uint8_t *buf, size_t len) {
-	if (len < 20)
-		return -1;
+    if (len < 20)
+        return -1;
 
-	memcpy(&p->p.tcp, buf, sizeof(p->p.tcp));
+    memcpy(&p->p.tcp, buf, sizeof(p->p.tcp));
 
-	p->p.tcp.sport   = ntohs(p->p.tcp.sport);
-	p->p.tcp.dport   = ntohs(p->p.tcp.dport);
-	p->p.tcp.seq     = ntohl(p->p.tcp.seq);
-	p->p.tcp.ack_seq = ntohl(p->p.tcp.ack_seq);
-	p->p.tcp.doff    = p->p.tcp.doff;
-	p->p.tcp.fin     = p->p.tcp.fin;
-	p->p.tcp.syn     = p->p.tcp.syn;
-	p->p.tcp.rst     = p->p.tcp.rst;
-	p->p.tcp.psh     = p->p.tcp.psh;
-	p->p.tcp.ack     = p->p.tcp.ack;
-	p->p.tcp.urg     = p->p.tcp.urg;
-	p->p.tcp.window  = ntohs(p->p.tcp.window);
-	p->p.tcp.chksum  = ntohs(p->p.tcp.chksum);
-	p->p.tcp.urg_ptr = ntohs(p->p.tcp.urg_ptr);
+    p->p.tcp.sport   = ntohs(p->p.tcp.sport);
+    p->p.tcp.dport   = ntohs(p->p.tcp.dport);
+    p->p.tcp.seq     = ntohl(p->p.tcp.seq);
+    p->p.tcp.ack_seq = ntohl(p->p.tcp.ack_seq);
+    p->p.tcp.doff    = p->p.tcp.doff;
+    p->p.tcp.fin     = p->p.tcp.fin;
+    p->p.tcp.syn     = p->p.tcp.syn;
+    p->p.tcp.rst     = p->p.tcp.rst;
+    p->p.tcp.psh     = p->p.tcp.psh;
+    p->p.tcp.ack     = p->p.tcp.ack;
+    p->p.tcp.urg     = p->p.tcp.urg;
+    p->p.tcp.window  = ntohs(p->p.tcp.window);
+    p->p.tcp.chksum  = ntohs(p->p.tcp.chksum);
+    p->p.tcp.urg_ptr = ntohs(p->p.tcp.urg_ptr);
 
-	/* TODO: unpack TCP extensions */
+    /* TODO: unpack TCP extensions */
 
-	p->type   = TYPE_TCP;
-	p->length = p->p.tcp.doff * 4;
+    p->type   = TYPE_TCP;
+    p->length = p->p.tcp.doff * 4;
 
-	return TYPE_RAW;
+    return TYPE_RAW;
 }

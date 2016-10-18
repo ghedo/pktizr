@@ -46,44 +46,44 @@
 #include "util.h"
 
 int resolve_ifname_to_mac(char *ifname, uint8_t *mac) {
-	int rc;
-	struct ifreq ifr;
+    int rc;
+    struct ifreq ifr;
 
-	_close_ int fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (fd < 0)
-		sysf_printf("socket(AF_INET");
+    _close_ int fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (fd < 0)
+        sysf_printf("socket(AF_INET");
 
-	snprintf(ifr.ifr_name, IFNAMSIZ, "%s", ifname);
+    snprintf(ifr.ifr_name, IFNAMSIZ, "%s", ifname);
 
-	rc = ioctl(fd, SIOCGIFHWADDR, &ifr);
-	if (rc < 0)
-		sysf_printf("ioctl(SIOCGIFHWADDR)");
+    rc = ioctl(fd, SIOCGIFHWADDR, &ifr);
+    if (rc < 0)
+        sysf_printf("ioctl(SIOCGIFHWADDR)");
 
-	memcpy(mac, ifr.ifr_ifru.ifru_hwaddr.sa_data, 6);
+    memcpy(mac, ifr.ifr_ifru.ifru_hwaddr.sa_data, 6);
 
-	return 0;
+    return 0;
 }
 
 int resolve_ifname_to_ip(char *ifname, uint32_t *ip) {
-	int rc;
-	struct ifreq ifr;
-	struct sockaddr_in *sa;
+    int rc;
+    struct ifreq ifr;
+    struct sockaddr_in *sa;
 
-	_close_ int fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (fd < 0)
-		sysf_printf("socket(AF_INET");
+    _close_ int fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (fd < 0)
+        sysf_printf("socket(AF_INET");
 
-	snprintf(ifr.ifr_name, IFNAMSIZ, "%s", ifname);
+    snprintf(ifr.ifr_name, IFNAMSIZ, "%s", ifname);
 
-	rc = ioctl(fd, SIOCGIFADDR, &ifr);
-	if (rc < 0)
-		sysf_printf("ioctl(SIOCGIFADDR)");
+    rc = ioctl(fd, SIOCGIFADDR, &ifr);
+    if (rc < 0)
+        sysf_printf("ioctl(SIOCGIFADDR)");
 
-	sa = (struct sockaddr_in *) &ifr.ifr_addr;
+    sa = (struct sockaddr_in *) &ifr.ifr_addr;
 
-	*ip = ntohl(sa->sin_addr.s_addr);
+    *ip = ntohl(sa->sin_addr.s_addr);
 
-	return 0;
+    return 0;
 }
 
 #endif /* __linux__ */

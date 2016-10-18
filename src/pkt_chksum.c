@@ -38,42 +38,42 @@
 #include "pkt.h"
 
 static uint32_t sum(uint8_t *buf, size_t len) {
-	uint32_t csum = 0;
+    uint32_t csum = 0;
 
-	for (size_t i = 0; i < len - 1; i += 2)
-		csum += *(uint16_t *) &buf[i];
+    for (size_t i = 0; i < len - 1; i += 2)
+        csum += *(uint16_t *) &buf[i];
 
-	if (len & 1)
-		csum += (uint16_t) buf[len - 1];
+    if (len & 1)
+        csum += (uint16_t) buf[len - 1];
 
-	return csum;
+    return csum;
 }
 
 uint16_t pkt_chksum(uint8_t *buf, size_t len, uint32_t csum) {
-	csum += sum(buf, len);
+    csum += sum(buf, len);
 
-	while (csum >> 16)
-		csum = (csum >> 16) + (csum & 0xFFFF);
+    while (csum >> 16)
+        csum = (csum >> 16) + (csum & 0xFFFF);
 
-	return ~csum;
+    return ~csum;
 }
 
 uint32_t pkt_pseudo_chksum(struct ip4_hdr *h) {
-	struct pseudo_hdr {
-		uint32_t saddr;
-		uint32_t daddr;
-		uint8_t  zero;
-		uint8_t  proto;
-		uint16_t length;
-	} hdr;
+    struct pseudo_hdr {
+        uint32_t saddr;
+        uint32_t daddr;
+        uint8_t  zero;
+        uint8_t  proto;
+        uint16_t length;
+    } hdr;
 
-	uint16_t len = h->len - (h->ihl * 4);
+    uint16_t len = h->len - (h->ihl * 4);
 
-	hdr.saddr  = h->src;
-	hdr.daddr  = h->dst;
-	hdr.zero   = 0;
-	hdr.proto  = h->proto;
-	hdr.length = htons(len);
+    hdr.saddr  = h->src;
+    hdr.daddr  = h->dst;
+    hdr.zero   = 0;
+    hdr.proto  = h->proto;
+    hdr.length = htons(len);
 
-	return sum((uint8_t *) &hdr, sizeof(hdr));
+    return sum((uint8_t *) &hdr, sizeof(hdr));
 }

@@ -39,32 +39,32 @@
 #include "pkt.h"
 
 int main(int argc, char *argv[]) {
-	int rc;
+    int rc;
 
-	size_t   len;
-	uint8_t *buf;
+    size_t   len;
+    uint8_t *buf;
 
-	struct pkt *pkt, *cur;
+    struct pkt *pkt, *cur;
 
-	FILE *f = fopen(argv[1], "rb");
+    FILE *f = fopen(argv[1], "rb");
 
-	fseek(f, 0, SEEK_END);
-	len = ftell(f);
-	fseek(f, 0, SEEK_SET);
+    fseek(f, 0, SEEK_END);
+    len = ftell(f);
+    fseek(f, 0, SEEK_SET);
 
-	buf = malloc(len);
-	fread(buf, len, 1, f);
-	fclose(f);
+    buf = malloc(len);
+    fread(buf, len, 1, f);
+    fclose(f);
 
-	rc = pkt_unpack(buf, len, &pkt);
-	if (!rc)
-		return EXIT_FAILURE;
+    rc = pkt_unpack(buf, len, &pkt);
+    if (!rc)
+        return EXIT_FAILURE;
 
-	DL_FOREACH(pkt, cur) {
-		printf("%u\n", cur->type);
-	}
+    DL_FOREACH(pkt, cur) {
+        printf("%u\n", cur->type);
+    }
 
-	pkt_free_all(pkt);
+    pkt_free_all(pkt);
 
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }

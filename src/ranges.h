@@ -29,10 +29,10 @@
  */
 
 struct range {
-	uint32_t start;
-	uint32_t end;
+    uint32_t start;
+    uint32_t end;
 
-	struct range *next;
+    struct range *next;
 };
 
 struct range *range_parse_targets(void *ta, char *spec);

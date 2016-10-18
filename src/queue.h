@@ -32,63 +32,63 @@
 #include <urcu/uatomic.h>
 
 struct queue_node {
-	struct queue_node *next;
+    struct queue_node *next;
 };
 
 struct queue {
-	struct queue_node node;
-	struct queue_node *p;
+    struct queue_node node;
+    struct queue_node *p;
 };
 
 static inline void queue_node_init(struct queue_node *node) {
-	node->next = NULL;
+    node->next = NULL;
 }
 
 static inline void queue_init(struct queue *q) {
-	queue_node_init(&q->node);
-	q->p = &q->node;
+    queue_node_init(&q->node);
+    q->p = &q->node;
 }
 
 static inline bool queue_empty(struct queue *q) {
-	return CMM_LOAD_SHARED(q->node.next) == NULL &&
-	       CMM_LOAD_SHARED(q->p) == &q->node;
+    return CMM_LOAD_SHARED(q->node.next) == NULL &&
+           CMM_LOAD_SHARED(q->p) == &q->node;
 }
 
 static inline bool queue_enqueue(struct queue *q, struct queue_node *node) {
-	struct queue_node *old_tail = uatomic_xchg(&q->p, node);
-	CMM_STORE_SHARED(old_tail->next, node);
+    struct queue_node *old_tail = uatomic_xchg(&q->p, node);
+    CMM_STORE_SHARED(old_tail->next, node);
 
-	return old_tail != &q->node;
+    return old_tail != &q->node;
 }
 
 static inline struct queue_node *queue_node_next(struct queue_node *node) {
-	struct queue_node *next;
+    struct queue_node *next;
 
-	while ((next = CMM_LOAD_SHARED(node->next)) == NULL)
-		caa_cpu_relax();
+    while ((next = CMM_LOAD_SHARED(node->next)) == NULL)
+        caa_cpu_relax();
 
-	return next;
+    return next;
 }
 
 static inline struct queue_node *queue_dequeue(struct queue *q) {
-	struct queue_node *node, *next;
+    struct queue_node *node, *next;
 
-	if (queue_empty(q))
-		return NULL;
+    if (queue_empty(q))
+        return NULL;
 
-	node = queue_node_next(&q->node);
+    node = queue_node_next(&q->node);
 
-	if ((next = CMM_LOAD_SHARED(node->next)) == NULL) {
-		queue_node_init(&q->node);
+    if ((next = CMM_LOAD_SHARED(node->next)) == NULL) {
+        queue_node_init(&q->node);
 
-		if (uatomic_cmpxchg(&q->p, node, &q->node) == node)
-			return node;
+        if (uatomic_cmpxchg(&q->p, node, &q->node) == node)
+            return node;
 
-		next = queue_node_next(node);
-	}
+        next = queue_node_next(node);
+    }
 
-	q->node.next = next;
+    q->node.next = next;
 
-	cmm_smp_read_barrier_depends();
-	return node;
+    cmm_smp_read_barrier_depends();
+    return node;
 }

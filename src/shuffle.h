@@ -29,10 +29,10 @@
  */
 
 struct shuffle {
-	uint64_t range;
-	uint64_t a, b;
-	uint64_t seed;
-	unsigned rounds;
+    uint64_t range;
+    uint64_t a, b;
+    uint64_t seed;
+    unsigned rounds;
 };
 
 void shuffle_init(struct shuffle *r, uint64_t range, uint64_t seed);
