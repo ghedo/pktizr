@@ -37,3 +37,4 @@ struct shuffle {
 
 void shuffle_init(struct shuffle *r, uint64_t range, uint64_t seed);
 uint64_t shuffle(struct shuffle *r, uint64_t m);
+uint64_t unshuffle(struct shuffle *r, uint64_t m);

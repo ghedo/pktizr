@@ -45,6 +45,9 @@
 static inline uint64_t do_shuffle(unsigned r, uint64_t a, uint64_t b,
                                   uint64_t m, uint64_t seed);
 
+static inline uint64_t do_unshuffle(unsigned r, uint64_t a, uint64_t b,
+                                    uint64_t m, uint64_t seed);
+
 void shuffle_init(struct shuffle *r, uint64_t range, uint64_t seed) {
     double root = sqrt(range);
 
@@ -64,6 +67,16 @@ uint64_t shuffle(struct shuffle *r, uint64_t m) {
 
     do {
         c = do_shuffle(r->rounds, r->a, r->b,  c, r->seed);
+    } while (c >= r->range);
+
+    return c;
+}
+
+uint64_t unshuffle(struct shuffle *r, uint64_t m) {
+    uint64_t c = m;
+
+    do {
+        c = do_unshuffle(r->rounds, r->a, r->b,  c, r->seed);
     } while (c >= r->range);
 
     return c;
@@ -99,4 +112,44 @@ static inline uint64_t do_shuffle(unsigned r, uint64_t a, uint64_t b,
 
     return (r & 1) ? a * L + R :
                      a * R + L;
+}
+
+static inline uint64_t do_unshuffle(unsigned r, uint64_t a, uint64_t b,
+                                    uint64_t m, uint64_t seed) {
+    uint64_t L, R, tmp;
+
+    if (r & 1) {
+        R = m % a;
+        L = m / a;
+    } else {
+        L = m % a;
+        R = m / a;
+    }
+
+    for (unsigned j = r; j >= 1; j--) {
+        tmp = F(j, L, seed) - R;
+
+        if (j & 1) {
+            if (tmp > R) {
+                tmp = a - (tmp % a);
+                if (tmp == a)
+                    tmp = 0;
+            } else {
+                tmp %= a;
+            }
+        } else {
+            if (tmp > R) {
+                tmp = b - (tmp % b);
+                if (tmp == b)
+                    tmp = 0;
+            } else {
+                tmp %= b;
+            }
+        }
+
+        R = L;
+        L = tmp;
+    }
+
+    return a * R + L;
 }
