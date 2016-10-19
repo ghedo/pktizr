@@ -114,7 +114,7 @@ pktizr's packet decoder can be tested by using the afl fuzzer as follows:
 
    $ CC=afl-gcc ./waf configure --sanitize=address
    $ ./waf build_fuzz
-   $ afl-fuzz -i tests/ -o results/ -m none build/pkt_fuzz @@
+   $ afl-fuzz -i tests/fuzz/ -o results/ -m none build/pkt_fuzz @@
 
 Copyright
 ---------
