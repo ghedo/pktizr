@@ -30,21 +30,38 @@
 
 #include <stdint.h>
 
-#include "hash.h"
+/*
+ * Python randomized hash implementation as described at
+ * https://www.python.org/dev/peps/pep-0456/#current-implementation-with-modified-fnv
+ *
+ * It is *not* a cryptographic hash function, but it doesn't really matter as
+ * far as pktizr is concerned and it's faster than siphash.
+ */
+static inline uint64_t pyrhash(const uint8_t *k, const uint8_t *m,
+                               const uint64_t n) {
+    register int64_t len;
+    register uint64_t x;
+    register uint64_t prefix;
+    register uint64_t suffix;
+    register const unsigned char *p;
 
-uint64_t pkt_cookie(uint32_t saddr, uint32_t daddr,
-                    uint16_t sport, uint16_t dport,
-                    uint64_t seed) {
-    uint32_t buf[4];
-    uint64_t key[2];
+    prefix = *(uint64_t *) (k + 0);
+    suffix = *(uint64_t *) (k + 8);
 
-    key[0] = seed;
-    key[1] = seed;
+    len = n;
 
-    buf[0] = daddr;
-    buf[1] = dport;
-    buf[2] = saddr;
-    buf[3] = sport;
+    if (len == 0)
+        return 0;
 
-    return pyrhash((const uint8_t *)key, (const uint8_t *)buf, sizeof(buf));
+    p = m;
+    x = prefix;
+    x ^= *p << 7;
+
+    while (--len >= 0)
+        x = (1000003 * x) ^ *p++;
+
+    x ^= n;
+    x ^= suffix;
+
+    return x;
 }
