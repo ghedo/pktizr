@@ -18,7 +18,7 @@ _INSTALL_DIRS_LIST = [
 ]
 
 def options(opt):
-    opt.load('compiler_c')
+    opt.load('compiler_c waf_unit_test')
 
     group = opt.get_option_group("build and install options")
     for ident, default, desc in _INSTALL_DIRS_LIST:
@@ -62,7 +62,7 @@ def configure(cfg):
     def my_check_os(ctx):
         ctx.env.deps.append("os-{0}".format(ctx.env.DEST_OS))
 
-    cfg.load('compiler_c')
+    cfg.load('compiler_c waf_unit_test')
 
     for ident, _, _ in _INSTALL_DIRS_LIST:
         varname = ident.upper()
@@ -201,7 +201,20 @@ def build(bld):
         ( 'deps/lua-bitop/bit.c'                   ),
     ]
 
-    bld.env.append_value('INCLUDES', ['deps', 'src'])
+
+    test_sources = [
+        # sources
+        ( 'src/shuffle.c'                          ),
+
+        # tests
+        ( 'tests/main.c'                           ),
+        ( 'tests/shuffle.c'                        ),
+
+        # clar
+        ( 'tests/clar/clar.c'                      ),
+    ]
+
+    bld.env.append_value('INCLUDES', ['deps', 'src', 'tests'])
 
     bld(
         name         = 'pktizr',
@@ -210,6 +223,14 @@ def build(bld):
         target       = 'pktizr',
         use          = bld.env.deps,
         install_path = bld.env.BINDIR
+    )
+
+    bld(
+        name         = 'pktizr_test',
+        features     = 'c cprogram test',
+        source       = filter_sources(bld, test_sources),
+        target       = 'pktizr_test',
+        use          = bld.env.deps,
     )
 
     bld.install_files(bld.env.DOCDIR + '/scripts',
