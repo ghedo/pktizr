@@ -115,10 +115,11 @@ static void netdev_open_sock(void *p, const char *dev_name) {
 
     priv->rx_ring = mmap(0, tp.tp_block_size * tp.tp_block_nr * 2,
                              PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    priv->tx_ring = priv->rx_ring + tp.tp_block_size * tp.tp_block_nr;
 
     if (!priv->rx_ring)
         fail_printf("EOF");
+
+    priv->tx_ring = priv->rx_ring + tp.tp_block_size * tp.tp_block_nr;
 
     priv->fd = fd;
 }
