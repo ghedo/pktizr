@@ -65,8 +65,6 @@ static void netdev_open_sock(void *p, const char *dev_name) {
 
     struct priv *priv = p;
 
-    int vers = TPACKET_V2;
-
     struct tpacket_req tp;
     struct sockaddr_ll dev_addr;
 
@@ -92,6 +90,7 @@ static void netdev_open_sock(void *p, const char *dev_name) {
     tp.tp_block_nr   = tp.tp_frame_nr /
                        (tp.tp_block_size / tp.tp_frame_size);
 
+    int vers = TPACKET_V2;
     rc = setsockopt(fd, SOL_PACKET, PACKET_VERSION, &vers, sizeof(vers));
     if (rc < 0)
         sysf_printf("setsockopt(PACKET_VERSION)");
@@ -106,12 +105,13 @@ static void netdev_open_sock(void *p, const char *dev_name) {
     if (rc < 0)
         sysf_printf("setsockopt(PACKET_TX_RING)");
 
-    unsigned int len = sizeof(vers);
-    rc = getsockopt(fd, SOL_PACKET, PACKET_HDRLEN, &vers, &len);
+    int hdr_len;
+    unsigned int len = sizeof(hdr_len);
+    rc = getsockopt(fd, SOL_PACKET, PACKET_HDRLEN, &hdr_len, &len);
     if (rc < 0)
         sysf_printf("getsockopt(PACKET_HDRLEN)");
 
-    priv->ring_hdrlen = vers;
+    priv->ring_hdrlen = hdr_len;
 
     priv->rx_ring = mmap(0, tp.tp_block_size * tp.tp_block_nr * 2,
                              PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
