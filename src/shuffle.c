@@ -51,8 +51,32 @@ static inline uint64_t do_unshuffle(unsigned r, uint64_t a, uint64_t b,
 void shuffle_init(struct shuffle *r, uint64_t range, uint64_t seed) {
     double root = sqrt(range);
 
-    r->a = (uint64_t) (root - 1);
-    r->b = (uint64_t) (root + 1);
+    switch (range) {
+    case 0:
+        r->a = 0;
+        r->b = 0;
+        break;
+
+    case 1:
+        r->a = 1;
+        r->b = 1;
+        break;
+
+    case 2:
+        r->a = 1;
+        r->b = 2;
+        break;
+
+    case 3:
+        r->a = 2;
+        r->b = 2;
+        break;
+
+    default:
+        r->a = (uint64_t) (root - 1);
+        r->b = (uint64_t) (root + 1);
+        break;
+    }
 
     while ((r->a * r->b) <= range)
         r->b++;
