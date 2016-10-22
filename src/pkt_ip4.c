@@ -47,7 +47,7 @@ void pkt_pack_ip4(struct pkt *p, uint8_t *buf, size_t len) {
     out->id       = htons(p->p.ip4.id);
     out->frag_off = htons(p->p.ip4.frag_off);
     out->ttl      = p->p.ip4.ttl;
-    out->proto    = p->p.ip4.proto;;
+    out->proto    = p->p.ip4.proto;
     out->chksum   = 0;
     out->src      = p->p.ip4.src;
     out->dst      = p->p.ip4.dst;
