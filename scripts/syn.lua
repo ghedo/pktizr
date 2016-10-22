@@ -16,62 +16,62 @@ pkt_tcp.sport = local_port
 pkt_tcp.syn   = true
 
 function loop(addr, port)
-	pkt_ip4.dst = addr
+    pkt_ip4.dst = addr
 
-	pkt_tcp.dport = port
-	pkt_tcp.seq   = pkt.cookie32(local_addr, addr, local_port, port)
+    pkt_tcp.dport = port
+    pkt_tcp.seq   = pkt.cookie32(local_addr, addr, local_port, port)
 
-	return pkt_ip4, pkt_tcp
+    return pkt_ip4, pkt_tcp
 end
 
 function recv(pkts)
-	local pkt_ip4 = pkts[1]
-	local pkt_tcp = pkts[2]
+    local pkt_ip4 = pkts[1]
+    local pkt_tcp = pkts[2]
 
-	if #pkts < 2 or pkt_tcp._type ~= 'tcp' then
-		return
-	end
+    if #pkts < 2 or pkt_tcp._type ~= 'tcp' then
+        return
+    end
 
-	if not pkt_tcp.ack then
-		return
-	end
+    if not pkt_tcp.ack then
+        return
+    end
 
-	local src = pkt_ip4.src
-	local dst = pkt_ip4.dst
+    local src = pkt_ip4.src
+    local dst = pkt_ip4.dst
 
-	local sport = pkt_tcp.sport
-	local dport = pkt_tcp.dport
+    local sport = pkt_tcp.sport
+    local dport = pkt_tcp.dport
 
-	local seq = pkt.cookie32(dst, src, dport, sport)
+    local seq = pkt.cookie32(dst, src, dport, sport)
 
-	if pkt_tcp.ack_seq - 1 ~= seq then
-		return
-	end
+    if pkt_tcp.ack_seq - 1 ~= seq then
+        return
+    end
 
-	local status = "unknown"
+    local status = "unknown"
 
-	if pkt_tcp.syn then
-		status = "open"
-	elseif pkt_tcp.rst then
-		status = "closed"
-		return -- don't print closed ports
-	end
+    if pkt_tcp.syn then
+        status = "open"
+    elseif pkt_tcp.rst then
+        status = "closed"
+        return -- don't print closed ports
+    end
 
-	pkt_ip4.src = dst
-	pkt_ip4.dst = src
+    pkt_ip4.src = dst
+    pkt_ip4.dst = src
 
-	pkt_tcp.sport   = dport
-	pkt_tcp.dport   = sport
-	pkt_tcp.doff    = 5
-	pkt_tcp.syn     = false
-	pkt_tcp.psh     = false
-	pkt_tcp.ack     = false
-	pkt_tcp.rst     = true
-	pkt_tcp.seq     = pkt_tcp.ack_seq
-	pkt_tcp.ack_seq = 0
+    pkt_tcp.sport   = dport
+    pkt_tcp.dport   = sport
+    pkt_tcp.doff    = 5
+    pkt_tcp.syn     = false
+    pkt_tcp.psh     = false
+    pkt_tcp.ack     = false
+    pkt_tcp.rst     = true
+    pkt_tcp.seq     = pkt_tcp.ack_seq
+    pkt_tcp.ack_seq = 0
 
-	pkt.send(pkt_ip4, pkt_tcp)
+    pkt.send(pkt_ip4, pkt_tcp)
 
-	std.print("Port %u at %s is %s", sport, src, status)
-	return true
+    std.print("Port %u at %s is %s", sport, src, status)
+    return true
 end
