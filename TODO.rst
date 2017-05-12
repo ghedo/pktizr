@@ -1,0 +1,9 @@
+- Flamegraph pktizr + optimize short strcmp
+- tls.lua script (ClientHello-only)
+- dhcp.lua script (with --gateway-mac)
+- tcp_flow.lua script that reassembles TCP flows
+- --idle option (without targets)
+- Script chaining
+- Packet encoders/decoders in Lua
+- IPv6 support (using some bigint implementation)
+- Benchmark pktizr shuffle (standalone) with other hashes
